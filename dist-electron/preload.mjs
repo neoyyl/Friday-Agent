@@ -1,1 +1,64 @@
-"use strict";const r=require("electron"),c={list:()=>r.ipcRenderer.invoke("sessions:list"),create:e=>r.ipcRenderer.invoke("sessions:create",e),delete:e=>r.ipcRenderer.invoke("sessions:delete",e),update:(e,n)=>r.ipcRenderer.invoke("sessions:update",e,n)},l={list:e=>r.ipcRenderer.invoke("messages:list",e),create:(e,n,t,s)=>r.ipcRenderer.invoke("messages:create",e,n,t,s)},d={list:()=>r.ipcRenderer.invoke("tools:list"),toggle:(e,n)=>r.ipcRenderer.invoke("tools:toggle",e,n),getConfig:e=>r.ipcRenderer.invoke("tools:getConfig",e),updateConfig:(e,n)=>r.ipcRenderer.invoke("tools:updateConfig",e,n)},a={chat:(e,n)=>r.ipcRenderer.invoke("llm:chat",e,n),chatStream:(e,n)=>r.ipcRenderer.invoke("llm:chatStream",e,n),getModels:()=>r.ipcRenderer.invoke("llm:getModels"),onStreamChunk:e=>{const n=(t,s)=>e(s);return r.ipcRenderer.on("llm:streamChunk",n),()=>r.ipcRenderer.removeListener("llm:streamChunk",n)},onStreamDone:e=>{const n=()=>e();return r.ipcRenderer.on("llm:streamDone",n),()=>r.ipcRenderer.removeListener("llm:streamDone",n)}},p={get:()=>r.ipcRenderer.invoke("settings:get"),update:e=>r.ipcRenderer.invoke("settings:update",e)},o={on(...e){const[n,t]=e;return r.ipcRenderer.on(n,(s,...i)=>t(s,...i))},off(...e){const[n,...t]=e;return r.ipcRenderer.off(n,...t)},send(...e){const[n,...t]=e;return r.ipcRenderer.send(n,...t)},invoke(...e){const[n,...t]=e;return r.ipcRenderer.invoke(n,...t)}};r.contextBridge.exposeInMainWorld("electronAPI",{sessions:c,messages:l,tools:d,llm:a,settings:p,ipc:o});r.contextBridge.exposeInMainWorld("ipcRenderer",o);
+"use strict";
+const electron = require("electron");
+const sessionsAPI = {
+  list: () => electron.ipcRenderer.invoke("sessions:list"),
+  create: (title) => electron.ipcRenderer.invoke("sessions:create", title),
+  delete: (id) => electron.ipcRenderer.invoke("sessions:delete", id),
+  update: (id, title) => electron.ipcRenderer.invoke("sessions:update", id, title)
+};
+const messagesAPI = {
+  list: (sessionId) => electron.ipcRenderer.invoke("messages:list", sessionId),
+  create: (sessionId, role, content, toolCalls) => electron.ipcRenderer.invoke("messages:create", sessionId, role, content, toolCalls)
+};
+const toolsAPI = {
+  list: () => electron.ipcRenderer.invoke("tools:list"),
+  toggle: (toolId, enabled) => electron.ipcRenderer.invoke("tools:toggle", toolId, enabled),
+  getConfig: (toolId) => electron.ipcRenderer.invoke("tools:getConfig", toolId),
+  updateConfig: (toolId, config) => electron.ipcRenderer.invoke("tools:updateConfig", toolId, config)
+};
+const llmAPI = {
+  chat: (messages, options) => electron.ipcRenderer.invoke("llm:chat", messages, options),
+  chatStream: (messages, options) => electron.ipcRenderer.invoke("llm:chatStream", messages, options),
+  getModels: () => electron.ipcRenderer.invoke("llm:getModels"),
+  onStreamChunk: (callback) => {
+    const handler = (_event, chunk) => callback(chunk);
+    electron.ipcRenderer.on("llm:streamChunk", handler);
+    return () => electron.ipcRenderer.removeListener("llm:streamChunk", handler);
+  },
+  onStreamDone: (callback) => {
+    const handler = () => callback();
+    electron.ipcRenderer.on("llm:streamDone", handler);
+    return () => electron.ipcRenderer.removeListener("llm:streamDone", handler);
+  }
+};
+const settingsAPI = {
+  get: () => electron.ipcRenderer.invoke("settings:get"),
+  update: (settings) => electron.ipcRenderer.invoke("settings:update", settings)
+};
+const ipcAPI = {
+  on(...args) {
+    const [channel, listener] = args;
+    return electron.ipcRenderer.on(channel, (event, ...args2) => listener(event, ...args2));
+  },
+  off(...args) {
+    const [channel, ...omit] = args;
+    return electron.ipcRenderer.off(channel, ...omit);
+  },
+  send(...args) {
+    const [channel, ...omit] = args;
+    return electron.ipcRenderer.send(channel, ...omit);
+  },
+  invoke(...args) {
+    const [channel, ...omit] = args;
+    return electron.ipcRenderer.invoke(channel, ...omit);
+  }
+};
+electron.contextBridge.exposeInMainWorld("electronAPI", {
+  sessions: sessionsAPI,
+  messages: messagesAPI,
+  tools: toolsAPI,
+  llm: llmAPI,
+  settings: settingsAPI,
+  ipc: ipcAPI
+});
+electron.contextBridge.exposeInMainWorld("ipcRenderer", ipcAPI);

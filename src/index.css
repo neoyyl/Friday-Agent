@@ -154,10 +154,9 @@ body {
 
 /* ── 面板样式 ── */
 .panel {
-  position: fixed;
-  top: 20px;
-  bottom: 20px;
-  width: 362px;
+  position: relative;
+  width: 100%;
+  height: 100%;
   z-index: 3;
   padding: 16px 18px;
   border-radius: 16px;
@@ -816,19 +815,7 @@ body {
   width: 100vw;
   height: 100vh;
   position: relative;
-  overflow: hidden;
-}
-
-/* ── 左侧面板 (L1) ── */
-.panel-left {
-  left: 20px;
-  width: 362px;
-}
-
-/* ── 右侧面板 (L2) ── */
-.panel-right {
-  right: 20px;
-  width: 362px;
+  overflow: auto;
 }
 
 /* ── 中央区域 ── */
@@ -836,18 +823,29 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 402px;
-  margin-right: 402px;
+  margin-left: 80px;
   position: relative;
+  min-width: 0;
+}
+
+.side-panel.open ~ .center-area {
+  margin-left: 402px;
 }
 
 /* ── 记忆图谱 ── */
 .memory-graph {
   flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: stretch;
   min-height: 0;
+  min-width: 0;
+  overflow: visible;
+}
+
+.memory-graph svg {
+  width: 100%;
+  height: 100%;
 }
 
 .graph-placeholder {
@@ -933,8 +931,12 @@ body {
   transform: translate(-50%, -50%);
 }
 
-/* ── 设置按钮 ── */
+/* ── 主题切换器位置 ── */
 .settings-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 10;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -955,7 +957,76 @@ body {
   color: var(--warm);
 }
 
-/* ── 设置面板 ── */
+/* ── 侧面板 ── */
+.side-panel {
+  position: fixed;
+  left: 20px;
+  top: 20px;
+  bottom: 20px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.side-panel.open {
+  width: 362px;
+}
+
+.side-panel.open .panel {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── 层级按钮 ── */
+.layer-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-self: flex-start;
+}
+
+.layer-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  backdrop-filter: blur(20px);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: all 0.2s ease;
+  color: var(--ink2);
+}
+
+.layer-btn:hover {
+  border-color: var(--btn-color, var(--cool));
+  color: var(--ink);
+  transform: translateX(4px);
+}
+
+.layer-btn.active {
+  background: color-mix(in srgb, var(--btn-color, var(--cool)) 15%, var(--panel));
+  border-color: var(--btn-color, var(--cool));
+  color: var(--btn-color, var(--cool));
+}
+
+.layer-icon {
+  font-size: 14px;
+}
+
+.layer-label {
+  font-size: 8px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.05em;
+}
+
+/* ── 设置面板位置 ── */
 .settings-panel {
   position: fixed;
   bottom: 60px;
