@@ -91,20 +91,32 @@ export const useChatStore = create<ChatState>((set, get) => ({
   sendMessage: async (_sessionId, content, useStream = true) => {
     const { addMessage, setLoading, setStreaming, setError, appendToMessage, messages } = get()
 
-    // 添加用户消息到 UI
+    const provider = localStorage.getItem('friday-provider') || 'openai'
+    const model = localStorage.getItem('friday-model') || 'gpt-4o'
+    const temperature = parseFloat(localStorage.getItem('friday-temperature') || '0.7')
+    const maxTokens = parseInt(localStorage.getItem('friday-max-tokens') || '4096')
+    const apiKey = localStorage.getItem('friday-api-key') || ''
+    const baseUrl = localStorage.getItem('friday-base-url') || undefined
+    const lang = localStorage.getItem('friday-voice-lang') || 'zh-CN'
+    const langPrompt = lang.startsWith('zh') ? '请始终使用中文回复。' : 'Please always respond in English.'
+    const llmOptions = { model, temperature, maxTokens, apiKey, provider, baseUrl }
+
     addMessage({ role: 'user', content })
 
-    // 设置加载状态
     setLoading(true)
     setStreaming(useStream)
     setError(null)
 
+    const systemMessage = { role: 'system' as const, content: `你是 Friday，一个个人 AI 助手。${langPrompt}` }
+    const apiMessages = [systemMessage, ...messages.filter((msg) => msg.content).map((msg) => ({
+      role: msg.role as 'user' | 'assistant',
+      content: msg.content,
+    }))]
+
     try {
       if (useStream) {
-        // 流式响应
         const aiMessageId = addMessage({ role: 'assistant', content: '' })
 
-        // 设置流式响应监听
         const unsubscribeChunk = (window as any).electronAPI.llm.onStreamChunk((chunk: string) => {
           appendToMessage(aiMessageId, chunk)
         })
@@ -116,27 +128,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
           setStreaming(false)
         })
 
-        // 发送消息
-        await (window as any).electronAPI.llm.chatStream(
-          messages
-            .filter((msg) => msg.content)
-            .map((msg) => ({
-              role: msg.role,
-              content: msg.content,
-            })),
-          {}
-        )
+        await (window as any).electronAPI.llm.chatStream(apiMessages, llmOptions)
       } else {
-        // 非流式响应
-        const response = await (window as any).electronAPI.llm.chat(
-          messages
-            .filter((msg) => msg.content)
-            .map((msg) => ({
-              role: msg.role,
-              content: msg.content,
-            })),
-          {}
-        )
+        const response = await (window as any).electronAPI.llm.chat(apiMessages, llmOptions)
 
         addMessage({ role: 'assistant', content: response.content })
         setLoading(false)

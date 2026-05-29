@@ -15,6 +15,9 @@ export interface Settings {
   // 生成设置
   temperature: string
   maxTokens: string
+  
+  // 安全设置
+  sandboxEnabled: boolean
 }
 
 interface SettingsState {
@@ -40,6 +43,7 @@ const defaultSettings: Settings = {
   theme: 'light',
   temperature: '0.7',
   maxTokens: '4096',
+  sandboxEnabled: true,
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({

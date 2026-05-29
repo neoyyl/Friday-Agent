@@ -74,11 +74,11 @@ export const PROVIDERS: ProviderConfig[] = [
     id: 'deepseek',
     name: 'DeepSeek',
     icon: '🐋',
-    description: 'DeepSeek-V2, DeepSeek-Coder',
+    description: 'DeepSeek V4 Pro, DeepSeek V4 Flash',
     apiKeyRequired: true,
     defaultModels: [
-      { id: 'deepseek-chat', name: 'DeepSeek-V2', maxTokens: 32768 },
-      { id: 'deepseek-coder', name: 'DeepSeek-Coder', maxTokens: 32768 },
+      { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', maxTokens: 1048576 },
+      { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', maxTokens: 1048576 },
     ],
     settings: [
       { key: 'apiKey', label: 'API Key', type: 'password', placeholder: 'sk-...', required: true },

@@ -137,9 +137,9 @@ export class OpenRouterClient {
 
 // 获取模型列表
 export const AVAILABLE_MODELS = [
-  { id: 'openai/gpt-4', name: 'GPT-4', provider: 'OpenAI' },
-  { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo', provider: 'OpenAI' },
   { id: 'openai/gpt-4o', name: 'GPT-4o', provider: 'OpenAI' },
+  { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo', provider: 'OpenAI' },
+  { id: 'openai/gpt-4', name: 'GPT-4', provider: 'OpenAI' },
   { id: 'openai/gpt-3.5-turbo', name: 'GPT-3.5 Turbo', provider: 'OpenAI' },
   { id: 'anthropic/claude-3-opus', name: 'Claude 3 Opus', provider: 'Anthropic' },
   { id: 'anthropic/claude-3-sonnet', name: 'Claude 3 Sonnet', provider: 'Anthropic' },
@@ -147,4 +147,6 @@ export const AVAILABLE_MODELS = [
   { id: 'meta-llama/llama-3-70b', name: 'Llama 3 70B', provider: 'Meta' },
   { id: 'meta-llama/llama-3-8b', name: 'Llama 3 8B', provider: 'Meta' },
   { id: 'google/gemini-pro', name: 'Gemini Pro', provider: 'Google' },
+  { id: 'deepseek/deepseek-v4-flash', name: 'DeepSeek V4 Flash', provider: 'DeepSeek' },
+  { id: 'deepseek/deepseek-v4-pro', name: 'DeepSeek V4 Pro', provider: 'DeepSeek' },
 ]

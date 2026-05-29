@@ -12,12 +12,13 @@ const THEMES: { id: ThemeName; name: string; colors: string[] }[] = [
 ]
 
 const PROVIDERS = [
-  { id: 'openai', name: 'OpenAI', models: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'] },
-  { id: 'anthropic', name: 'Anthropic', models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku'] },
-  { id: 'deepseek', name: 'DeepSeek', models: ['deepseek-chat', 'deepseek-coder'] },
-  { id: 'qwen', name: '通义千问', models: ['qwen-max', 'qwen-plus', 'qwen-turbo'] },
-  { id: 'zhipu', name: '智谱AI', models: ['glm-4', 'glm-4-flash'] },
-  { id: 'moonshot', name: 'Kimi', models: ['moonshot-v1-128k', 'moonshot-v1-32k'] },
+  { id: 'openai', name: 'OpenAI', models: ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'] },
+  { id: 'anthropic', name: 'Anthropic', models: ['claude-3-5-sonnet-20241022', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'] },
+  { id: 'deepseek', name: 'DeepSeek', models: ['deepseek-v4-flash', 'deepseek-v4-pro'] },
+  { id: 'qwen', name: '通义千问', models: ['qwen-max', 'qwen-plus', 'qwen-turbo', 'qwen-long'] },
+  { id: 'zhipu', name: '智谱AI', models: ['glm-4', 'glm-4-flash', 'glm-4-long', 'glm-3-turbo'] },
+  { id: 'moonshot', name: 'Kimi', models: ['moonshot-v1-128k', 'moonshot-v1-32k', 'moonshot-v1-8k'] },
+  { id: 'google', name: 'Google Gemini', models: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-pro'] },
   { id: 'ollama', name: 'Ollama (Local)', models: ['llama3', 'mistral', 'qwen2'] },
 ]
 
@@ -35,6 +36,7 @@ export function ThemeSwitcher() {
   const [model, setModel] = useState(localStorage.getItem('friday-model') || 'gpt-4o')
   const [temperature, setTemperature] = useState(parseFloat(localStorage.getItem('friday-temperature') || '0.7'))
   const [maxTokens, setMaxTokens] = useState(parseInt(localStorage.getItem('friday-max-tokens') || '4096'))
+  const [baseUrl, setBaseUrl] = useState(localStorage.getItem('friday-base-url') || '')
   
   // Voice Settings
   const [voiceLang, setVoiceLang] = useState(localStorage.getItem('friday-voice-lang') || 'zh-CN')
@@ -50,6 +52,14 @@ export function ThemeSwitcher() {
     return localStorage.getItem('friday-show-graph') !== 'false'
   })
   
+  // Sandbox Settings
+  const [sandboxEnabled, setSandboxEnabled] = useState(() => {
+    return localStorage.getItem('friday-sandbox-enabled') !== 'false'
+  })
+  
+  // Update Settings
+  const [updateStatus, setUpdateStatus] = useState<{ status: string; version?: string; percent?: number } | null>(null)
+  
   // Feedback
   const [feedback, setFeedback] = useState('')
   
@@ -57,6 +67,22 @@ export function ThemeSwitcher() {
     localStorage.setItem('friday-show-graph', String(showGraph))
     window.dispatchEvent(new CustomEvent('graph-toggle', { detail: { show: showGraph } }))
   }, [showGraph])
+  
+  useEffect(() => {
+    localStorage.setItem('friday-sandbox-enabled', String(sandboxEnabled))
+    // 通知沙箱模块更新状态
+    window.dispatchEvent(new CustomEvent('sandbox-toggle', { detail: { enabled: sandboxEnabled } }))
+  }, [sandboxEnabled])
+  
+  // 监听更新状态
+  useEffect(() => {
+    const unsubscribe = (window as any).electronAPI?.update?.onStatus?.((status: any) => {
+      setUpdateStatus(status)
+    })
+    return () => {
+      if (unsubscribe) unsubscribe()
+    }
+  }, [])
   
   const showFeedback = (msg: string) => {
     setFeedback(msg)
@@ -69,6 +95,9 @@ export function ThemeSwitcher() {
     localStorage.setItem('friday-model', model)
     localStorage.setItem('friday-temperature', String(temperature))
     localStorage.setItem('friday-max-tokens', String(maxTokens))
+    if (baseUrl) localStorage.setItem('friday-base-url', baseUrl)
+    else localStorage.removeItem('friday-base-url')
+    ;(window as any).electronAPI?.settings?.update?.({ apiKey, model, temperature: String(temperature), maxTokens: String(maxTokens), provider }).catch(() => {})
     showFeedback(t('LLM_SAVED'))
   }
   
@@ -83,6 +112,22 @@ export function ThemeSwitcher() {
     localStorage.setItem('friday-tts-provider', ttsProvider)
     localStorage.setItem('friday-tts-voice', ttsVoice)
     showFeedback(t('TTS_SAVED'))
+  }
+  
+  const handleCheckUpdate = async () => {
+    try {
+      await (window as any).electronAPI?.update?.check()
+    } catch (error) {
+      console.error('Failed to check update:', error)
+    }
+  }
+  
+  const handleInstallUpdate = async () => {
+    try {
+      await (window as any).electronAPI?.update?.install()
+    } catch (error) {
+      console.error('Failed to install update:', error)
+    }
   }
   
   const getCurrentModels = () => {
@@ -173,6 +218,18 @@ export function ThemeSwitcher() {
           min="256"
           max="128000"
         />
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section-title">API Base URL (可选)</div>
+        <input 
+          type="url" 
+          className="settings-input"
+          value={baseUrl}
+          onChange={(e) => setBaseUrl(e.target.value)}
+          placeholder="留空使用默认地址"
+        />
+        <div className="settings-hint">自定义 API 地址，普通用户无需填写</div>
       </div>
       
       <button className="settings-save" onClick={saveLLM}>{t('SAVE_LLM')}</button>
@@ -338,6 +395,59 @@ export function ThemeSwitcher() {
           </div>
         </div>
         <div className="settings-hint">{t('LANGUAGE_HINT')}</div>
+      </div>
+      
+      {/* 安全沙箱设置 */}
+      <div className="settings-section">
+        <div className="settings-section-title">安全沙箱</div>
+        <div className="settings-toggle-row">
+          <span className="settings-toggle-label">启用后，文件操作和命令执行将受到安全限制</span>
+          <button 
+            className={`settings-toggle ${sandboxEnabled ? 'active' : ''}`}
+            onClick={() => setSandboxEnabled(!sandboxEnabled)}
+          >
+            {sandboxEnabled ? 'ON' : 'OFF'}
+          </button>
+        </div>
+      </div>
+      
+      {/* 应用更新 */}
+      <div className="settings-section">
+        <div className="settings-section-title">应用更新</div>
+        <div className="settings-update-row">
+          <span className="settings-update-status">
+            {updateStatus?.status === 'checking' && '检查中...'}
+            {updateStatus?.status === 'available' && `发现新版本 v${updateStatus.version}`}
+            {updateStatus?.status === 'not-available' && '已是最新版本'}
+            {updateStatus?.status === 'downloading' && `下载中 ${Math.round(updateStatus.percent || 0)}%`}
+            {updateStatus?.status === 'downloaded' && `已下载 v${updateStatus.version}，点击安装`}
+            {updateStatus?.status === 'error' && '更新失败'}
+            {!updateStatus && '检查更新'}
+          </span>
+          <div className="settings-update-buttons">
+            {updateStatus?.status === 'downloaded' ? (
+              <button className="settings-save" onClick={handleInstallUpdate}>
+                安装更新
+              </button>
+            ) : (
+              <button 
+                className="settings-save" 
+                onClick={handleCheckUpdate}
+                disabled={updateStatus?.status === 'checking'}
+              >
+                {updateStatus?.status === 'checking' ? '检查中...' : '检查更新'}
+              </button>
+            )}
+          </div>
+        </div>
+        {updateStatus?.status === 'downloading' && (
+          <div className="settings-progress-bar">
+            <div 
+              className="settings-progress-fill" 
+              style={{ width: `${updateStatus.percent || 0}%` }}
+            ></div>
+          </div>
+        )}
       </div>
     </div>
   )

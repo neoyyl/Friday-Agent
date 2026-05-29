@@ -9,8 +9,13 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-electron
 dist-ssr
+release
 *.local
+
+# Friday Kernel (Python backend)
+Friday_Kernel/
 
 # Editor directories and files
 .vscode/*

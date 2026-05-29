@@ -1,13 +1,15 @@
 {
   "name": "friday",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
+    "build:win": "tsc && vite build && electron-builder --win",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -16,10 +18,14 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/d3": "^7.4.3",
     "better-sqlite3": "^12.10.0",
+    "bufferutil": "^4.1.0",
     "d3": "^7.9.0",
+    "electron-updater": "^6.1.7",
     "lucide-react": "^1.16.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "socket.io-client": "^4.8.3",
+    "utf-8-validate": "^6.0.6",
     "zustand": "^5.0.13"
   },
   "devDependencies": {
@@ -35,12 +41,55 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
-    "postcss": "^8.5.15",
+    "postcss": "^8.5.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^5.2.2",
     "vite": "^5.1.6",
     "vite-plugin-electron": "^0.28.6",
     "vite-plugin-electron-renderer": "^0.14.5"
   },
-  "main": "dist-electron/main.js"
+  "main": "dist-electron/main.js",
+  "build": {
+    "appId": "com.friday.agent",
+    "productName": "Friday Agent",
+    "copyright": "Copyright © 2026",
+    "directories": {
+      "output": "release/${version}"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "public/Friday.ico",
+      "artifactName": "${productName}-Windows-${version}-Setup.${ext}",
+      "signingHashAlgorithms": [],
+      "publisherName": "Friday Agent"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Friday Agent",
+      "installerIcon": "public/Friday.ico",
+      "uninstallerIcon": "public/Friday.ico",
+      "installerHeaderIcon": "public/Friday.ico"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "your-username",
+      "repo": "friday-agent",
+      "releaseType": "release",
+      "publishAutoUpdate": true
+    }
+  }
 }

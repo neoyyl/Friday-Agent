@@ -21,6 +21,10 @@ export interface SystemStatus {
   // 运行时间
   uptime: number
   lastActivity: Date | null
+
+  // Kernel 连接状态
+  kernelStatus: 'connected' | 'disconnected' | 'starting' | 'error'
+  kernelVersion: string | null
 }
 
 interface SystemStatusState {
@@ -51,6 +55,8 @@ const defaultStatus: SystemStatus = {
   sessionTokensUsed: 0,
   uptime: 0,
   lastActivity: null,
+  kernelStatus: 'disconnected',
+  kernelVersion: null,
 }
 
 export const useSystemStatusStore = create<SystemStatusState>((set, get) => ({
@@ -104,8 +110,20 @@ export const useSystemStatusStore = create<SystemStatusState>((set, get) => ({
     const { setLoading, setStatus } = get()
     setLoading(true)
     try {
-      // 模拟获取系统状态
-      // 实际项目中应该从 Electron 主进程获取
+      // Try to get Kernel health status
+      const kernelStatus = await (window as any).electronAPI?.kernel?.status?.()
+      if (kernelStatus) {
+        setStatus({
+          kernelStatus: kernelStatus.status === 'running' ? 'connected' :
+                       kernelStatus.status === 'starting' ? 'starting' :
+                       kernelStatus.status === 'error' ? 'error' : 'disconnected',
+          kernelVersion: kernelStatus.version || null,
+          uptime: kernelStatus.uptime || 0,
+          lastActivity: new Date(),
+        })
+      }
+
+      // Get system memory info
       const memoryInfo = await (window as any).electronAPI?.system?.getMemoryInfo?.() || {
         used: 0,
         total: 0,
@@ -114,7 +132,6 @@ export const useSystemStatusStore = create<SystemStatusState>((set, get) => ({
       setStatus({
         memoryUsed: memoryInfo.used || 0,
         memoryTotal: memoryInfo.total || 0,
-        uptime: Date.now(),
         lastActivity: new Date(),
       })
     } catch (error) {
