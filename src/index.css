@@ -838,6 +838,53 @@ body {
   min-width: 0;
 }
 
+/* ── 3D 虚拟形象容器 ── */
+.avatar-container {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+/* ── 视图切换按钮 ── */
+.view-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  display: flex;
+  gap: 4px;
+}
+
+.view-toggle-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.view-toggle-btn.active {
+  background: rgba(74, 224, 208, 0.15);
+  color: #4ae0d0;
+  border-color: rgba(74, 224, 208, 0.3);
+}
+
+.view-toggle-btn:not(.active) {
+  background: rgba(31, 41, 55, 0.5);
+  color: #9ca3af;
+  border-color: transparent;
+}
+
+.view-toggle-btn:not(.active):hover {
+  background: rgba(55, 65, 81, 0.5);
+}
+
 .side-panel.open ~ .center-area {
   margin-left: 402px;
 }

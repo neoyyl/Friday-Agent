@@ -18,7 +18,6 @@ export const useThemeStore = create<ThemeState>()(
 
       setTheme: (theme: ThemeName) => {
         set({ currentTheme: theme })
-        applyTheme(theme)
       },
 
       cycleTheme: () => {
@@ -27,32 +26,13 @@ export const useThemeStore = create<ThemeState>()(
         const nextIndex = (currentIndex + 1) % THEMES.length
         const nextTheme = THEMES[nextIndex]
         set({ currentTheme: nextTheme })
-        applyTheme(nextTheme)
       },
     }),
     {
       name: 'friday-theme',
-      onRehydrateStorage: () => {
-        return (state) => {
-          if (state?.currentTheme) {
-            applyTheme(state.currentTheme)
-          }
-        }
-      },
     }
   )
 )
 
-function applyTheme(theme: ThemeName) {
-  const root = document.documentElement
-  if (theme === 'midnight') {
-    root.removeAttribute('data-theme')
-  } else {
-    root.setAttribute('data-theme', theme)
-  }
-}
-
-export const THEMES_CONFIG = THEMES.map((theme) => ({
-  name: theme,
-  label: theme.charAt(0).toUpperCase() + theme.slice(1),
-}))
+/** Keep for external reference; theme DOM is managed by ThemingProvider */
+export const THEME_LIST = THEMES

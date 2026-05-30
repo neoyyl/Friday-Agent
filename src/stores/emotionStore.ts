@@ -36,13 +36,14 @@ export const useEmotionStore = create<EmotionState>((set, get) => ({
   analyze: async (text: string) => {
     set({ isAnalyzing: true })
     try {
-      const result = await (window as any).electronAPI.kernel.emotion.analyze(text)
+      const result = await window.electronAPI!.kernel.emotion.analyze(text)
       if (result && !result.error) {
+        const d = result.data as Record<string, unknown> | undefined
         const emotion: EmotionResult = {
-          emotion: result.emotion || result.dominant_emotion || 'neutral',
-          confidence: result.confidence || 0.5,
-          valence: result.valence,
-          arousal: result.arousal,
+          emotion: (d?.emotion || d?.dominant_emotion || 'neutral') as EmotionType,
+          confidence: (d?.confidence as number) || 0.5,
+          valence: d?.valence as number | undefined,
+          arousal: d?.arousal as number | undefined,
         }
         set({
           currentEmotion: emotion.emotion,
@@ -62,11 +63,12 @@ export const useEmotionStore = create<EmotionState>((set, get) => ({
 
   getState: async () => {
     try {
-      const result = await (window as any).electronAPI.kernel.emotion.state()
+      const result = await window.electronAPI!.kernel.emotion.state()
       if (result && !result.error) {
+        const d = result.data as Record<string, unknown> | undefined
         set({
-          currentEmotion: result.emotion || result.dominant_emotion || null,
-          confidence: result.confidence || 0,
+          currentEmotion: (d?.emotion || d?.dominant_emotion || null) as EmotionType | null,
+          confidence: (d?.confidence as number) || 0,
         })
       }
     } catch (e) {

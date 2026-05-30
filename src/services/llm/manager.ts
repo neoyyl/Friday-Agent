@@ -79,7 +79,7 @@ export class LLMManager {
       const client = createLLMClient(
         id,
         settings.apiKey || '',
-        settings.baseUrl || provider.defaultModels[0] ? undefined : undefined
+        settings.baseUrl
       )
       this.clients.set(id, client)
     }
@@ -96,7 +96,7 @@ export class LLMManager {
       return settings.modelId
     }
     
-    return provider?.defaultModels[0]?.id || 'gpt-4'
+    return provider?.defaultModels[0]?.id || 'gpt-4o'
   }
 
   // 聊天

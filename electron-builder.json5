@@ -1,9 +1,14 @@
 // @see - https://www.electron.build/configuration/configuration
+// 构建配置统一入口 (package.json 中的 build 段已废弃，以此文件为准)
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "com.agent-platform.desktop",
+  "appId": "com.friday.agent",
   "asar": true,
-  "productName": "Friday",
+  "asarUnpack": [
+    "node_modules/better-sqlite3/**/*"
+  ],
+  "productName": "Friday Agent",
+  "copyright": "Copyright © 2026",
   "directories": {
     "output": "release/${version}"
   },
@@ -35,7 +40,13 @@
     "oneClick": false,
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
-    "deleteAppDataOnUninstall": false
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Friday Agent",
+    "deleteAppDataOnUninstall": false,
+    "installerIcon": "public/Friday.ico",
+    "uninstallerIcon": "public/Friday.ico",
+    "installerHeaderIcon": "public/Friday.ico"
   },
   "linux": {
     "target": [
@@ -43,5 +54,12 @@
     ],
     "artifactName": "${productName}-Linux-${version}.${ext}",
     "icon": "public/Friday.ico"
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "friday-team",
+    "repo": "friday-agent",
+    "releaseType": "release",
+    "publishAutoUpdate": true
   }
 }

@@ -1,15 +1,22 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import { ThemingProvider } from './contexts/ThemingProvider'
+import { ErrorBoundary } from './ui/components/common/ErrorBoundary'
+import { initKernelEventListeners } from './stores/kernelStore'
 import './index.css'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ThemingProvider>
-      <App />
-    </ThemingProvider>
-  </React.StrictMode>,
+// 初始化 Kernel 事件监听
+initKernelEventListeners()
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <ErrorBoundary>
+      <ThemingProvider>
+        <App />
+      </ThemingProvider>
+    </ErrorBoundary>
+  </StrictMode>,
 )
 
 // Use contextBridge

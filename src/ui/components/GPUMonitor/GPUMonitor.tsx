@@ -25,12 +25,14 @@ const Bar = ({ value, max, color }: { value: number; max: number; color: string 
   )
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export function GPUMonitor() {
   const { gpu, gpuLoading, loadGPU } = useKernelDataStore()
 
   useEffect(() => { loadGPU() }, [loadGPU])
 
-  const data = gpu
+  const data = gpu as Record<string, any> | null
 
   return (
     <div style={{ padding: '16px' }}>

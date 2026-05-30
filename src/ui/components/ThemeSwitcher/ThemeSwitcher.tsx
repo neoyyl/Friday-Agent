@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useThemeStore, ThemeName } from '../../../stores/themeStore'
 import { useLanguageStore } from '../../../stores/languageStore'
+import { useSettingsStore } from '../../../stores/settingsStore'
 
 const THEMES: { id: ThemeName; name: string; colors: string[] }[] = [
   { id: 'midnight', name: '午夜星云', colors: ['#0f1822', '#8fb6d8', '#d39872'] },
@@ -30,13 +31,23 @@ export function ThemeSwitcher() {
   const [showSettings, setShowSettings] = useState(false)
   const [activeTab, setActiveTab] = useState<TabId>('llm')
   
-  // LLM Settings
-  const [provider, setProvider] = useState(localStorage.getItem('friday-provider') || 'openai')
-  const [apiKey, setApiKey] = useState(localStorage.getItem('friday-api-key') || '')
-  const [model, setModel] = useState(localStorage.getItem('friday-model') || 'gpt-4o')
-  const [temperature, setTemperature] = useState(parseFloat(localStorage.getItem('friday-temperature') || '0.7'))
-  const [maxTokens, setMaxTokens] = useState(parseInt(localStorage.getItem('friday-max-tokens') || '4096'))
-  const [baseUrl, setBaseUrl] = useState(localStorage.getItem('friday-base-url') || '')
+  // LLM Settings — sourced from SQLite-backed store (not localStorage)
+  const [provider, setProvider] = useState('openai')
+  const [apiKey, setApiKey] = useState('')
+  const [model, setModel] = useState('gpt-4o')
+  const [temperature, setTemperature] = useState(0.7)
+  const [maxTokens, setMaxTokens] = useState(4096)
+  const [baseUrl, setBaseUrl] = useState('')
+
+  // Load settings from store on mount
+  useEffect(() => {
+    const st = useSettingsStore.getState().settings
+    if (st.provider) setProvider(st.provider)
+    if (st.apiKey) setApiKey(st.apiKey)
+    if (st.model) setModel(st.model)
+    if (st.temperature) setTemperature(parseFloat(st.temperature))
+    if (st.maxTokens) setMaxTokens(parseInt(st.maxTokens))
+  }, [])
   
   // Voice Settings
   const [voiceLang, setVoiceLang] = useState(localStorage.getItem('friday-voice-lang') || 'zh-CN')
@@ -90,14 +101,14 @@ export function ThemeSwitcher() {
   }
   
   const saveLLM = () => {
-    localStorage.setItem('friday-provider', provider)
-    localStorage.setItem('friday-api-key', apiKey)
-    localStorage.setItem('friday-model', model)
-    localStorage.setItem('friday-temperature', String(temperature))
-    localStorage.setItem('friday-max-tokens', String(maxTokens))
-    if (baseUrl) localStorage.setItem('friday-base-url', baseUrl)
-    else localStorage.removeItem('friday-base-url')
-    ;(window as any).electronAPI?.settings?.update?.({ apiKey, model, temperature: String(temperature), maxTokens: String(maxTokens), provider }).catch(() => {})
+    useSettingsStore.getState().saveSettings({
+      provider,
+      apiKey,
+      model,
+      temperature: String(temperature),
+      maxTokens: String(maxTokens),
+      ...(baseUrl ? { baseUrl } : {}),
+    })
     showFeedback(t('LLM_SAVED'))
   }
   

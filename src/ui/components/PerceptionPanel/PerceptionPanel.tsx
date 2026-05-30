@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useEffect } from 'react'
 import { useKernelDataStore } from '../../../stores/kernelDataStore'
 
@@ -32,7 +34,7 @@ export function PerceptionPanel() {
     return () => clearInterval(timer)
   }, [loadPerception])
 
-  const data = perception
+  const data = perception as Record<string, any> | null
 
   return (
     <div style={{ padding: '16px' }}>
@@ -106,7 +108,7 @@ export function PerceptionPanel() {
                 {data.git.recent_commits?.length > 0 && (
                   <div style={{ marginTop: '4px' }}>
                     <div style={{ fontSize: '10px', color: 'var(--text-dim)', marginBottom: '2px' }}>最近提交</div>
-                    {data.git.recent_commits.slice(0, 3).map((c: any, i: number) => (
+                    {data.git.recent_commits.slice(0, 3).map((c: Record<string, any>, i: number) => (
                       <div key={i} style={{ fontSize: '10px', color: 'var(--text)', padding: '1px 0', display: 'flex', gap: '4px' }}>
                         <span style={{ color: 'var(--text-dim)' }}>[{c.hash?.slice(0, 7)}]</span>
                         <span>{c.message}</span>

@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useKernelDataStore } from '../../../stores/kernelDataStore'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export function ExecutionLog() {
   const [tab, setTab] = useState<'log' | 'report'>('log')
   const [filter, setFilter] = useState('')
   const { logs, logReport, logsLoading, loadLogs } = useKernelDataStore()
+  const report = logReport as Record<string, any> | null
 
   useEffect(() => { loadLogs() }, [loadLogs])
 
   const filteredLogs = filter
-    ? logs.filter((l: any) =>
+    ? logs.filter((l) =>
         JSON.stringify(l).toLowerCase().includes(filter.toLowerCase())
       )
     : logs
@@ -57,7 +60,7 @@ export function ExecutionLog() {
         ))}
       </div>
 
-      {logsLoading && !logs.length && !logReport ? (
+      {logsLoading && !logs.length && !report ? (
         <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '32px' }}>加载中...</div>
       ) : tab === 'log' ? (
         <div>
@@ -112,24 +115,24 @@ export function ExecutionLog() {
         </div>
       ) : (
         <div>
-          {logReport ? (
+          {report ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {logReport.summary && (
+              {report.summary && (
                 <div style={{
                   padding: '12px', borderRadius: '8px',
                   border: '1px solid var(--border)', background: 'var(--bg-elevated)',
                   fontSize: '12px', color: 'var(--text)', lineHeight: 1.6, whiteSpace: 'pre-wrap',
                 }}>
-                  {typeof logReport.summary === 'string' ? logReport.summary : JSON.stringify(logReport.summary, null, 2)}
+                  {typeof report.summary === 'string' ? report.summary : JSON.stringify(report.summary, null, 2)}
                 </div>
               )}
-              {logReport.stats && Object.keys(logReport.stats).length > 0 && (
+              {report.stats && Object.keys(report.stats).length > 0 && (
                 <div style={{
                   padding: '12px', borderRadius: '8px',
                   border: '1px solid var(--border)', background: 'var(--bg-elevated)',
                 }}>
                   <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text)', marginBottom: '8px' }}>统计数据</div>
-                  {Object.entries(logReport.stats).map(([k, v]: any) => (
+                  {Object.entries(report.stats).map(([k, v]: any) => (
                     <div key={k} style={{
                       display: 'flex', justifyContent: 'space-between',
                       padding: '4px 0', fontSize: '11px',
@@ -140,13 +143,13 @@ export function ExecutionLog() {
                   ))}
                 </div>
               )}
-              {!logReport.summary && !logReport.stats && (
+              {!report.summary && !report.stats && (
                 <div style={{
                   padding: '12px', borderRadius: '8px',
                   border: '1px solid var(--border)', background: 'var(--bg-elevated)',
                   fontSize: '12px', color: 'var(--text)', whiteSpace: 'pre-wrap',
                 }}>
-                  {JSON.stringify(logReport, null, 2)}
+                  {JSON.stringify(report, null, 2)}
                 </div>
               )}
             </div>

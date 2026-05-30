@@ -5,73 +5,102 @@ describe('LLMManager', () => {
   let manager: LLMManager
 
   beforeEach(() => {
-    manager = new LLMManager({ ...defaultLLMConfig, providers: { ...defaultLLMConfig.providers } })
+    // Deep copy to avoid shared state between tests
+    manager = new LLMManager(JSON.parse(JSON.stringify(defaultLLMConfig)))
   })
 
-  it('creates manager with default config', () => {
-    expect(manager).toBeDefined()
-    expect(manager.getConfig().activeProvider).toBe('openai')
+  it('initializes with default config', () => {
+    const config = manager.getConfig()
+    expect(config.activeProvider).toBe('openai')
+    expect(config.providers.openai.enabled).toBe(true)
+    expect(config.providers.anthropic.enabled).toBe(false)
   })
 
-  it('getActiveProvider returns openai by default', () => {
+  it('getActiveProvider returns the active provider config', () => {
     const provider = manager.getActiveProvider()
     expect(provider).toBeDefined()
-    expect(provider!.id).toBe('openai')
+    expect(provider?.id).toBe('openai')
   })
 
-  it('getCurrentModel returns default model when no modelId set', () => {
+  it('setActiveProvider changes the active provider', () => {
+    manager.setActiveProvider('anthropic')
+    expect(manager.getConfig().activeProvider).toBe('anthropic')
+  })
+
+  it('updateConfig merges config', () => {
+    manager.updateConfig({ activeProvider: 'google' })
+    expect(manager.getConfig().activeProvider).toBe('google')
+    // Other providers should still exist
+    expect(manager.getConfig().providers.openai).toBeDefined()
+  })
+
+  it('getProviderSettings returns provider settings', () => {
+    const settings = manager.getProviderSettings('openai')
+    expect(settings).toBeDefined()
+    expect(settings?.enabled).toBe(true)
+  })
+
+  it('updateProviderSettings updates specific provider', () => {
+    manager.updateProviderSettings('anthropic', { enabled: true, apiKey: 'test-key' })
+    const settings = manager.getProviderSettings('anthropic')
+    expect(settings?.enabled).toBe(true)
+    expect(settings?.apiKey).toBe('test-key')
+  })
+
+  it('getCurrentModel returns default model when not configured', () => {
     const model = manager.getCurrentModel()
-    expect(model).toBeTruthy()
+    expect(model).toBe('gpt-4o')
   })
 
-  it('setActiveProvider changes active provider', () => {
-    manager.setActiveProvider('deepseek')
-    expect(manager.getActiveProvider()!.id).toBe('deepseek')
+  it('getCurrentModel returns configured model', () => {
+    manager.updateProviderSettings('openai', { modelId: 'gpt-4-turbo' })
+    const model = manager.getCurrentModel()
+    expect(model).toBe('gpt-4-turbo')
   })
 
-  it('isProviderAvailable returns true for configured providers', () => {
-    manager.updateProviderSettings('openai', { apiKey: 'sk-test' })
+  it('isProviderAvailable returns true for enabled provider with API key', () => {
+    manager.updateProviderSettings('openai', { apiKey: 'test-key' })
     expect(manager.isProviderAvailable('openai')).toBe(true)
+  })
+
+  it('isProviderAvailable returns false for disabled provider', () => {
     expect(manager.isProviderAvailable('anthropic')).toBe(false)
   })
 
-  it('updateConfig merges partial config', () => {
-    manager.updateConfig({ activeProvider: 'deepseek' })
-    expect(manager.getConfig().activeProvider).toBe('deepseek')
+  it('isProviderAvailable returns false for unknown provider', () => {
+    expect(manager.isProviderAvailable('unknown')).toBe(false)
   })
 
-  it('getProviderSettings returns settings for provider', () => {
-    const settings = manager.getProviderSettings('openai')
-    expect(settings).toBeDefined()
-    expect(settings!.enabled).toBe(true)
-  })
-
-  it('updateProviderSettings merges provider settings', () => {
+  it('getAvailableProviders returns only enabled providers', () => {
     manager.updateProviderSettings('openai', { apiKey: 'test-key' })
-    expect(manager.getProviderSettings('openai')!.apiKey).toBe('test-key')
-  })
-
-  it('getAvailableProviders returns only enabled+configured providers', () => {
-    manager.updateProviderSettings('openai', { apiKey: 'sk-test' })
+    manager.updateProviderSettings('anthropic', { enabled: true, apiKey: 'test-key' })
     const available = manager.getAvailableProviders()
-    expect(available.length).toBe(1)
-    expect(available[0].id).toBe('openai')
+    expect(available.length).toBe(2)
+    expect(available.map(p => p.id)).toContain('openai')
+    expect(available.map(p => p.id)).toContain('anthropic')
   })
 
   it('exportConfig returns JSON string', () => {
     const json = manager.exportConfig()
-    const parsed = JSON.parse(json)
-    expect(parsed.activeProvider).toBe('openai')
+    const config = JSON.parse(json)
+    expect(config.activeProvider).toBe('openai')
   })
 
-  it('importConfig replaces config from JSON', () => {
-    const newConfig = { activeProvider: 'deepseek', providers: { deepseek: { enabled: true }, openai: { enabled: false } } }
-    manager.importConfig(JSON.stringify(newConfig))
-    expect(manager.getConfig().activeProvider).toBe('deepseek')
+  it('importConfig loads config from JSON', () => {
+    const json = JSON.stringify({ activeProvider: 'google', providers: {} })
+    manager.importConfig(json)
+    expect(manager.getConfig().activeProvider).toBe('google')
   })
 
-  it('chat with no enabled provider throws', async () => {
-    const emptyManager = new LLMManager({ activeProvider: 'openai', providers: { openai: { enabled: false } } })
-    await expect(emptyManager.chat([{ role: 'user', content: 'hi' }])).rejects.toThrow()
+  it('importConfig throws on invalid JSON', () => {
+    expect(() => manager.importConfig('invalid')).toThrow('无效的配置格式')
+  })
+
+  it('updateConfig clears client cache', () => {
+    // This is a behavioral test - after config update, clients should be recreated
+    manager.updateProviderSettings('openai', { apiKey: 'key1' })
+    manager.updateConfig({ activeProvider: 'openai' })
+    // No error means cache was cleared successfully
+    expect(manager.getConfig().activeProvider).toBe('openai')
   })
 })

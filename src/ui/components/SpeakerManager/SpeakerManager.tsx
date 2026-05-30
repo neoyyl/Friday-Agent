@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useKernelDataStore } from '../../../stores/kernelDataStore'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export function SpeakerManager() {
   const [showRegister, setShowRegister] = useState(false)
   const [newName, setNewName] = useState('')
@@ -28,6 +30,9 @@ export function SpeakerManager() {
     await deleteSpeaker(name)
   }
 
+  const curSpkr = currentSpeaker as Record<string, any> | null
+  const spList = speakers as Record<string, any>[]
+
   return (
     <div style={{ padding: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -44,7 +49,7 @@ export function SpeakerManager() {
         </button>
       </div>
 
-      {currentSpeaker && (
+      {curSpkr && (
         <div style={{
           padding: '10px 12px', borderRadius: '8px',
           border: '1px solid #8b5cf640', background: 'color-mix(in srgb, #8b5cf6 8%, transparent)',
@@ -52,10 +57,10 @@ export function SpeakerManager() {
         }}>
           <div style={{ fontSize: '10px', color: '#8b5cf6', marginBottom: '4px' }}>当前说话人</div>
           <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '14px' }}>
-            {currentSpeaker.alias || currentSpeaker.name}
+            {curSpkr.alias || curSpkr.name}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
-            语气: {currentSpeaker.tone || 'default'} | 相似度: {currentSpeaker.similarity ?? '-'}
+            语气: {curSpkr.tone || 'default'} | 相似度: {curSpkr.similarity ?? '-'}
           </div>
         </div>
       )}
@@ -117,13 +122,13 @@ export function SpeakerManager() {
 
       {speakerLoading ? (
         <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '32px' }}>加载中...</div>
-      ) : speakers.length === 0 ? (
+      ) : spList.length === 0 ? (
         <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '32px' }}>
           暂无说话人，点击上方按钮注册
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          {speakers.map((sp: any) => (
+          {spList.map((sp) => (
             <div key={sp.name} style={{
               padding: '10px 12px', borderRadius: '8px',
               border: '1px solid var(--border)', background: 'var(--bg-elevated)',

@@ -77,6 +77,9 @@ const translations = {
     INPUT_PLACEHOLDER: '输入消息...',
     SEND: '发送',
     
+    DISCONNECTED: '未连接',
+    WAITING_KERNEL_EVENTS: '等待 Kernel 事件...',
+
     // Stream types
     USER_MESSAGE: '用户消息',
     TOOL_CALL: '工具调用',
@@ -157,6 +160,9 @@ const translations = {
     INPUT_PLACEHOLDER: 'Type a message...',
     SEND: 'SEND',
     
+    DISCONNECTED: 'Disconnected',
+    WAITING_KERNEL_EVENTS: 'Waiting for Kernel events...',
+
     // Stream types
     USER_MESSAGE: 'USER MESSAGE',
     TOOL_CALL: 'TOOL CALL',

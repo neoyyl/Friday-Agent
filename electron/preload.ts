@@ -73,19 +73,19 @@ const ipcAPI = {
   },
 }
 
-// --------- Friday Kernel API ---------
+// --------- Friday Kernel API (Native mode — no subprocess) ---------
 
 const kernelAPI = {
-  // Process management
   start: () => ipcRenderer.invoke('kernel:start'),
   stop: () => ipcRenderer.invoke('kernel:stop'),
   status: () => ipcRenderer.invoke('kernel:status'),
+  getStderrLog: () => ipcRenderer.invoke('kernel:getStderrLog'),
 
-  // Generic proxy
   get: (path: string) => ipcRenderer.invoke('kernel:proxy', 'GET', path),
   post: (path: string, body?: any) => ipcRenderer.invoke('kernel:proxy', 'POST', path, body),
+  put: (path: string, body?: any) => ipcRenderer.invoke('kernel:proxy', 'PUT', path, body),
+  del: (path: string) => ipcRenderer.invoke('kernel:proxy', 'DELETE', path),
 
-  // Agents
   agents: {
     list: () => ipcRenderer.invoke('kernel:agents:list'),
     stats: () => ipcRenderer.invoke('kernel:agents:stats'),
@@ -94,7 +94,6 @@ const kernelAPI = {
     history: () => ipcRenderer.invoke('kernel:agents:history'),
   },
 
-  // Skills
   skills: {
     list: () => ipcRenderer.invoke('kernel:skills:list'),
     stats: () => ipcRenderer.invoke('kernel:skills:stats'),
@@ -104,7 +103,6 @@ const kernelAPI = {
     scan: () => ipcRenderer.invoke('kernel:skills:scan'),
   },
 
-  // Scheduler
   scheduler: {
     status: () => ipcRenderer.invoke('kernel:scheduler:status'),
     jobs: () => ipcRenderer.invoke('kernel:scheduler:jobs'),
@@ -114,7 +112,6 @@ const kernelAPI = {
     runAction: (name: string) => ipcRenderer.invoke('kernel:scheduler:action', name),
   },
 
-  // Triggers
   triggers: {
     list: () => ipcRenderer.invoke('kernel:triggers:list'),
     create: (trigger: any) => ipcRenderer.invoke('kernel:triggers:create', trigger),
@@ -123,7 +120,6 @@ const kernelAPI = {
     presets: () => ipcRenderer.invoke('kernel:triggers:presets'),
   },
 
-  // Workflows
   workflows: {
     list: () => ipcRenderer.invoke('kernel:workflows:list'),
     create: (workflow: any) => ipcRenderer.invoke('kernel:workflows:create', workflow),
@@ -131,50 +127,80 @@ const kernelAPI = {
     instances: () => ipcRenderer.invoke('kernel:workflows:instances'),
   },
 
-  // Emotion
   emotion: {
     analyze: (text: string) => ipcRenderer.invoke('kernel:emotion:analyze', text),
     state: () => ipcRenderer.invoke('kernel:emotion:state'),
   },
 
-  // Voice / TTS
   voice: {
     speak: (text: string, tone?: string) => ipcRenderer.invoke('kernel:voice:speak', text, tone),
     stop: () => ipcRenderer.invoke('kernel:voice:stop'),
     status: () => ipcRenderer.invoke('kernel:voice:status'),
     speakers: () => ipcRenderer.invoke('kernel:voice:speakers'),
+    register: (name: string, config?: any) => ipcRenderer.invoke('kernel:voice:register', name, config),
+    deleteSpeaker: (name: string) => ipcRenderer.invoke('kernel:voice:deleteSpeaker', name),
+    currentSpeaker: () => ipcRenderer.invoke('kernel:voice:currentSpeaker'),
     identify: (data: any) => ipcRenderer.invoke('kernel:voice:identify', data),
+    transcribe: (audioBase64: string, lang?: string) =>
+      ipcRenderer.invoke('kernel:asr:transcribe', audioBase64, lang),
   },
 
-  // Dispatch log
   dispatch: {
     stats: () => ipcRenderer.invoke('kernel:dispatch:stats'),
     insights: () => ipcRenderer.invoke('kernel:dispatch:insights'),
   },
 
-  // Execution log
   log: {
     list: () => ipcRenderer.invoke('kernel:log:list'),
     report: () => ipcRenderer.invoke('kernel:log:report'),
   },
 
-  // Timing
   timing: {
     readiness: () => ipcRenderer.invoke('kernel:timing:readiness'),
     shouldNotify: (data: any) => ipcRenderer.invoke('kernel:timing:shouldNotify', data),
   },
 
-  // Self Heal
   self_heal: {
     check: () => ipcRenderer.invoke('kernel:self_heal:check'),
     fix: () => ipcRenderer.invoke('kernel:self_heal:fix'),
   },
 
-  // Events
+  personality: {
+    get: () => ipcRenderer.invoke('kernel:personality:get'),
+  },
+
+  memory: {
+    list: () => ipcRenderer.invoke('kernel:memory:list'),
+    context: () => ipcRenderer.invoke('kernel:memory:context'),
+    save: (data: any) => ipcRenderer.invoke('kernel:memory:save', data),
+  },
+
+  gpu: {
+    status: () => ipcRenderer.invoke('kernel:gpu:status'),
+  },
+
+  obsidian: {
+    config: () => ipcRenderer.invoke('kernel:obsidian:config'),
+    notes: (folder?: string) => ipcRenderer.invoke('kernel:obsidian:notes', folder),
+    write: (data: any) => ipcRenderer.invoke('kernel:obsidian:write', data),
+  },
+
   onEvent: (callback: (event: string, data: any) => void) => {
     const handler = (_event: any, eventName: string, data: any) => callback(eventName, data)
     ipcRenderer.on('kernel:event', handler)
     return () => ipcRenderer.removeListener('kernel:event', handler)
+  },
+}
+
+// --------- Update API (auto-updater) ---------
+
+const updateAPI = {
+  check: () => ipcRenderer.invoke('update:check'),
+  install: () => ipcRenderer.invoke('update:install'),
+  onStatus: (callback: (status: { status: string; version?: string; percent?: number; error?: string }) => void) => {
+    const handler = (_event: any, status: any) => callback(status)
+    ipcRenderer.on('update:status', handler)
+    return () => ipcRenderer.removeListener('update:status', handler)
   },
 }
 
@@ -188,7 +214,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   settings: settingsAPI,
   ipc: ipcAPI,
   kernel: kernelAPI,
+  update: updateAPI,
 })
 
-// Legacy compatibility
 contextBridge.exposeInMainWorld('ipcRenderer', ipcAPI)

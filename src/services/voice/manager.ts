@@ -227,6 +227,22 @@ export class VoiceManager extends EventEmitter {
     return result
   }
 
+  // 快捷方法：通过 Kernel ASR 识别语音（Electron 环境）
+  async recognizeViaKernel(audioBase64: string, lang?: string): Promise<string> {
+    const voice = window.electronAPI?.kernel?.voice
+    if (!voice?.transcribe) throw new Error('Kernel ASR not available')
+    const result = await voice.transcribe(audioBase64, lang)
+    if (result.error) throw new Error(result.error)
+    return result.data?.text || ''
+  }
+
+  async speakViaKernel(text: string, tone?: string): Promise<void> {
+    const voice = window.electronAPI?.kernel?.voice
+    if (!voice?.speak) throw new Error('Kernel TTS not available')
+    const result = await voice.speak(text, tone)
+    if (result.error) throw new Error(result.error)
+  }
+
   // 配置管理
   getConfig(): VoiceConfig {
     return { ...this.config }

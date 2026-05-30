@@ -11,6 +11,9 @@ export interface KernelState {
   error: string | null
   autoStart: boolean
   wsConnected: boolean
+  restartAttempt: number
+  maxRestarts: number
+  crashDiagnostics: { stderr: string; error: string } | null
 
   // Actions
   setStatus: (status: KernelStatusType) => void
@@ -18,6 +21,7 @@ export interface KernelState {
   setError: (error: string | null) => void
   setAutoStart: (enabled: boolean) => void
   updateFromStatus: (info: any) => void
+  setCrashDiagnostics: (diagnostics: { stderr: string; error: string } | null) => void
 
   // Async actions
   startKernel: () => Promise<void>
@@ -26,37 +30,41 @@ export interface KernelState {
 }
 
 export const useKernelStore = create<KernelState>((set, get) => ({
-  status: 'stopped',
-  connected: false,
-  kernelVersion: null,
+  status: 'starting',
+  connected: true,
+  kernelVersion: '1.0.0',
   lastHealth: null,
-  port: 5001,
+  port: 0,
   error: null,
   autoStart: true,
-  wsConnected: false,
+  wsConnected: true,
+  restartAttempt: 0,
+  maxRestarts: 3,
+  crashDiagnostics: null,
 
   setStatus: (status) => set({ status }),
   setConnected: (connected) => set({ connected }),
   setError: (error) => set({ error }),
   setAutoStart: (autoStart) => set({ autoStart }),
+  setCrashDiagnostics: (diagnostics) => set({ crashDiagnostics: diagnostics }),
 
   updateFromStatus: (info: any) => {
+    const running = info.status === 'running' || info.process === 'running'
     set({
-      status: info.status || 'stopped',
+      status: running ? 'running' : (info.status || 'stopped'),
       port: info.port || 5001,
       lastHealth: info.lastHealth || null,
       error: info.error || null,
-      wsConnected: info.wsConnected || false,
-      connected: info.status === 'running',
+      wsConnected: info.wsConnected ?? running,
+      connected: running,
     })
   },
 
   startKernel: async () => {
     set({ status: 'starting', error: null })
     try {
-      await (window as any).electronAPI.kernel.start()
-      // Poll status after start
-      const status = await (window as any).electronAPI.kernel.status()
+      await window.electronAPI!.kernel.start()
+      const status = await window.electronAPI!.kernel.status()
       get().updateFromStatus(status)
     } catch (error: any) {
       set({ status: 'error', error: error.message })
@@ -65,7 +73,7 @@ export const useKernelStore = create<KernelState>((set, get) => ({
 
   stopKernel: async () => {
     try {
-      await (window as any).electronAPI.kernel.stop()
+      await window.electronAPI!.kernel.stop()
       set({ status: 'stopped', connected: false, wsConnected: false })
     } catch (error: any) {
       set({ error: error.message })
@@ -74,24 +82,25 @@ export const useKernelStore = create<KernelState>((set, get) => ({
 
   checkStatus: async () => {
     try {
-      const info = await (window as any).electronAPI.kernel.status()
+      const info = await window.electronAPI!.kernel.status()
       get().updateFromStatus(info)
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[KernelStore] checkStatus failed:', msg)
       set({ status: 'error', connected: false })
     }
   },
 }))
 
 // Listen for Kernel events and update store accordingly
-let eventUnsubscribe: (() => void) | null = null
+let eventUnsubscribe: (() => void) | undefined
 
 export function initKernelEventListeners(): void {
   if (eventUnsubscribe) return
 
-  eventUnsubscribe = (window as any).electronAPI?.kernel?.onEvent?.((event: string, data: any) => {
+  eventUnsubscribe = window.electronAPI?.kernel?.onEvent?.((event: string, data: any) => {
     switch (event) {
       case 'state.changed':
-        // Kernel state changed (idle/waking/listening/etc)
         console.log('[KernelEvent] state changed:', data?.state)
         break
       case 'dispatch.event':
@@ -113,4 +122,5 @@ export function initKernelEventListeners(): void {
         console.log('[KernelEvent]', event, data)
     }
   })
+
 }

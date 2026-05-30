@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useAgentStore, Agent } from '../../../stores/agentStore'
+import { useKernelStore } from '../../../stores/kernelStore'
 
 export function AgentPanel() {
   const { agents, stats, isDispatching, lastResult, loadAgents, loadStats, dispatchTask } = useAgentStore()
+  const { connected } = useKernelStore()
   const [taskInput, setTaskInput] = useState('')
   const [mode, setMode] = useState<string>('direct')
 
   useEffect(() => {
+    if (!connected) return
     loadAgents()
     loadStats()
-  }, [])
+  }, [connected])
 
   const handleDispatch = async () => {
     if (!taskInput.trim() || isDispatching) return

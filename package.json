@@ -29,9 +29,11 @@
     "d3": "^7.9.0",
     "electron-updater": "^6.1.7",
     "lucide-react": "^1.16.0",
+    "node-cron": "^4.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "socket.io-client": "^4.8.3",
+    "systeminformation": "^5.31.7",
     "three": "^0.160.0",
     "utf-8-validate": "^6.0.6",
     "zustand": "^5.0.13"

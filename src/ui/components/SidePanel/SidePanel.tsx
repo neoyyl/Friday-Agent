@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLanguageStore } from '../../../stores/languageStore'
+import { useKernelStore } from '../../../stores/kernelStore'
 
 interface StreamEntry {
   id: number
@@ -19,10 +20,11 @@ export function SidePanel({ activeLayer, onLayerChange }: SidePanelProps) {
   const [l1Data, setL1Data] = useState<StreamEntry[]>([])
   const [l2Data, setL2Data] = useState<StreamEntry[]>([])
   const { t } = useLanguageStore()
+  const { connected } = useKernelStore()
 
   // Listen for Kernel events and populate streams
   useEffect(() => {
-    const api = (window as any).electronAPI?.kernel
+    const api = window.electronAPI?.kernel
     if (!api?.onEvent) return
 
     let idCounter = 0
@@ -190,14 +192,23 @@ export function SidePanel({ activeLayer, onLayerChange }: SidePanelProps) {
 
       {/* Stream content */}
       <div style={{ padding: '8px 0' }}>
-        {getData().length === 0 ? (
+        {!connected ? (
+          <div style={{
+            padding: '32px 16px',
+            textAlign: 'center',
+            color: 'var(--warm)',
+            fontSize: '12px',
+          }}>
+            ⚡ Kernel {t('STATUS')}: {t('DISCONNECTED')}
+          </div>
+        ) : getData().length === 0 ? (
           <div style={{
             padding: '32px 16px',
             textAlign: 'center',
             color: 'var(--text-dim)',
             fontSize: '12px',
           }}>
-            等待 Kernel 事件...
+            {t('WAITING_KERNEL_EVENTS')}
           </div>
         ) : (
           getData().map((entry) => (

@@ -62,7 +62,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const { setLoading, setSettings } = get()
     setLoading(true)
     try {
-      const settings = await (window as any).electronAPI.settings.get()
+      const settings = await window.electronAPI!.settings.get()
       if (settings) {
         setSettings(settings as Partial<Settings>)
       }
@@ -76,7 +76,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   saveSettings: async (newSettings) => {
     const { setSettings } = get()
     try {
-      await (window as any).electronAPI.settings.update(newSettings)
+      await window.electronAPI!.settings.update(newSettings as Record<string, string>)
       setSettings(newSettings)
     } catch (error) {
       console.error('Failed to save settings:', error)

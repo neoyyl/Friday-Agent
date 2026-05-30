@@ -1,3 +1,0 @@
-"""
-friday_gui package
-"""

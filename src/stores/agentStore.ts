@@ -42,6 +42,8 @@ interface AgentState {
   loadHistory: () => Promise<void>
 }
 
+const api = () => window.electronAPI?.kernel
+
 export const useAgentStore = create<AgentState>((set) => ({
   agents: [],
   stats: null,
@@ -51,11 +53,24 @@ export const useAgentStore = create<AgentState>((set) => ({
 
   loadAgents: async () => {
     try {
-      const result = await (window as any).electronAPI.kernel.agents.list()
-      if (result && !result.error) {
-        const agents = Array.isArray(result) ? result :
-          (result.agents || Object.values(result).flat() || [])
-        set({ agents })
+      const k = api()
+      if (k?.agents?.list) {
+        const result = await k.agents.list()
+        if (result && !result.error) {
+          // 后端返回格式: {success: true, data: {agents: [...]}}
+          const agents: Agent[] = (result.data?.agents || []).map(a => ({
+            id: a.id,
+            name: a.name,
+            description: a.description,
+            category: (a as any).category || 'general',
+            capabilities: a.capabilities,
+            call_count: (a as any).call_count,
+            avg_duration: (a as any).avg_duration,
+            status: (a as any).status,
+          }))
+          set({ agents })
+        }
+        return
       }
     } catch (e) {
       console.error('Failed to load agents:', e)
@@ -64,9 +79,21 @@ export const useAgentStore = create<AgentState>((set) => ({
 
   loadStats: async () => {
     try {
-      const result = await (window as any).electronAPI.kernel.agents.stats()
-      if (result && !result.error) {
-        set({ stats: result })
+      const k = api()
+      if (k?.agents?.stats) {
+        const result = await k.agents.stats()
+        if (result && !result.error) {
+          // 后端返回格式: {success: true, data: {total, active, busy, total_uses, implemented}}
+          // 前端期望格式: {total_agents, total_dispatches, success_rate, avg_duration}
+          const d = result.data as Record<string, any> | undefined
+          const stats: AgentStats = {
+            total_agents: d?.total ?? 0,
+            total_dispatches: d?.total_uses ?? d?.active ?? 0,
+            success_rate: 0, // 后端没有返回这个字段，暂时设为0
+            avg_duration: 0, // 后端没有返回这个字段，暂时设为0
+          }
+          set({ stats })
+        }
       }
     } catch (e) {
       console.error('Failed to load agent stats:', e)
@@ -76,16 +103,17 @@ export const useAgentStore = create<AgentState>((set) => ({
   dispatchTask: async (task: string, mode: string = 'direct') => {
     set({ isDispatching: true })
     try {
-      const result = await (window as any).electronAPI.kernel.agents.dispatch(task, mode)
-      if (result && !result.error) {
+      const result = await window.electronAPI!.kernel.agents.dispatch(task, mode)
+      if (result && !result.error && result.data) {
+        const d = result.data as Record<string, any>
         const record: DispatchRecord = {
-          id: result.id || Date.now().toString(),
+          id: d.id || Date.now().toString(),
           task,
-          agent_id: result.agent_id || result.agent || 'unknown',
+          agent_id: d.agent_id || d.agent || 'unknown',
           mode,
-          result: result.result || result.output || JSON.stringify(result),
+          result: d.result || d.output || JSON.stringify(d),
           success: result.success !== false,
-          duration: result.duration || 0,
+          duration: d.duration || 0,
           timestamp: new Date().toISOString(),
         }
         set((s) => ({
@@ -105,10 +133,10 @@ export const useAgentStore = create<AgentState>((set) => ({
 
   loadHistory: async () => {
     try {
-      const result = await (window as any).electronAPI.kernel.agents.history()
+      const result = await window.electronAPI!.kernel.agents.history()
       if (result && !result.error) {
-        const history = Array.isArray(result) ? result :
-          (result.history || result.records || [])
+        // 后端返回格式: {success: true, data: {history: [...]}}
+        const history = (result.data?.history || []) as unknown as DispatchRecord[]
         set({ dispatchHistory: history })
       }
     } catch (e) {
