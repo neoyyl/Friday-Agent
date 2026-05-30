@@ -2,19 +2,26 @@
   "name": "friday",
   "private": true,
   "version": "0.1.0",
+  "description": "个人 AI 伴侣操作系统 — 集对话、记忆、感知、调度、语音于一体的桌面 AI Agent 平台",
+  "author": "Friday Team",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
     "build:win": "tsc && vite build && electron-builder --win",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "preview": "vite preview",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "@pixiv/three-vrm": "^2.1.0",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
+    "@react-three/drei": "^9.88.17",
+    "@react-three/fiber": "^8.15.19",
     "@types/better-sqlite3": "^7.6.13",
     "@types/d3": "^7.4.3",
     "better-sqlite3": "^12.10.0",
@@ -25,13 +32,18 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "socket.io-client": "^4.8.3",
+    "three": "^0.160.0",
     "utf-8-validate": "^6.0.6",
     "zustand": "^5.0.13"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",
+    "@types/three": "^0.184.1",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
     "@vitejs/plugin-react": "^4.2.1",
@@ -41,55 +53,14 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "jsdom": "^29.1.1",
     "postcss": "^8.5.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^5.2.2",
     "vite": "^5.1.6",
     "vite-plugin-electron": "^0.28.6",
-    "vite-plugin-electron-renderer": "^0.14.5"
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "vitest": "^4.1.7"
   },
-  "main": "dist-electron/main.js",
-  "build": {
-    "appId": "com.friday.agent",
-    "productName": "Friday Agent",
-    "copyright": "Copyright © 2026",
-    "directories": {
-      "output": "release/${version}"
-    },
-    "files": [
-      "dist/**/*",
-      "dist-electron/**/*"
-    ],
-    "asar": true,
-    "asarUnpack": [
-      "node_modules/better-sqlite3/**/*"
-    ],
-    "win": {
-      "target": [
-        "nsis"
-      ],
-      "icon": "public/Friday.ico",
-      "artifactName": "${productName}-Windows-${version}-Setup.${ext}",
-      "signingHashAlgorithms": [],
-      "publisherName": "Friday Agent"
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "Friday Agent",
-      "installerIcon": "public/Friday.ico",
-      "uninstallerIcon": "public/Friday.ico",
-      "installerHeaderIcon": "public/Friday.ico"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "your-username",
-      "repo": "friday-agent",
-      "releaseType": "release",
-      "publishAutoUpdate": true
-    }
-  }
+  "main": "dist-electron/main.js"
 }
