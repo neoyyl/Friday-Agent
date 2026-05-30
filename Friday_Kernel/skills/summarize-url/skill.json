@@ -1,0 +1,20 @@
+{
+  "id": "summarize-url",
+  "name": "URL摘要",
+  "version": "1.0.0",
+  "description": "使用 summarize CLI 摘要网页/PDF/视频",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "SummarizeUrlSkill",
+  "capabilities": [
+    "summarize",
+    "url摘要",
+    "网页摘要",
+    "视频摘要"
+  ],
+  "tags": [
+    "utility"
+  ],
+  "icon": "📋",
+  "license": "MIT"
+}

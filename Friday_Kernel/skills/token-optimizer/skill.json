@@ -1,0 +1,20 @@
+{
+  "id": "token-optimizer",
+  "name": "成本优化",
+  "version": "1.0.0",
+  "description": "通过 Haiku 路由、缓存等降低 AI 成本 97%",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "TokenOptimizerSkill",
+  "capabilities": [
+    "token",
+    "成本优化",
+    "省钱",
+    "token-optimizer"
+  ],
+  "tags": [
+    "optimization"
+  ],
+  "icon": "💰",
+  "license": "MIT"
+}

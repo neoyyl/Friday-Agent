@@ -1,0 +1,10 @@
+{
+  "wizard_completed": false,
+  "name": "Friday",
+  "language": "zh-CN",
+  "personality": "warm",
+  "wake_word": "Hey Friday",
+  "tts_speed": 1.0,
+  "auto_start": true,
+  "test": true
+}

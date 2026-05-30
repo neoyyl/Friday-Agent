@@ -1,0 +1,21 @@
+{
+  "id": "baoyu-translate",
+  "name": "精翻",
+  "version": "1.0.0",
+  "description": "三模式翻译: 快速/普通/精翻",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "BaoyuTranslateSkill",
+  "capabilities": [
+    "translate-pro",
+    "精翻",
+    "专业翻译",
+    "翻译"
+  ],
+  "tags": [
+    "language",
+    "translation"
+  ],
+  "icon": "🌐",
+  "license": "MIT"
+}

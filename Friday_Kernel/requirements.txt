@@ -1,0 +1,32 @@
+# Nuwa OS v1.0 — Python 依赖清单
+# pip install -r requirements.txt
+
+# 核心框架
+flask>=3.0
+flask-socketio>=5.3
+flask-cors>=4.0
+eventlet>=0.33  # WebSocket async 支持
+
+# 语音
+edge-tts>=6.0    # 流式 TTS
+sherpa-onnx>=1.7 # 本地 ASR (SenseVoice)
+sounddevice>=0.4  # 音频捕获
+soundfile>=0.12   # 音频文件读写
+numpy>=1.24
+webrtcvad>=2.0    # VAD 语音活动检测
+pydub>=0.25       # 音频处理
+pygame-ce>=2.5    # 音频播放
+
+# 数据 / 任务调度
+apscheduler>=3.10  # Cron 调度器
+
+# 系统监控
+psutil>=5.9        # CPU/内存/进程信息
+pywin32>=306       # Windows API (窗口/Git/进程)
+
+# 测试
+pytest>=8.0
+
+# 可选（提升精度）
+# transformers>=4.30  # 深度学习情感分析 (见 emotion_service.py)
+# torch>=2.0          # PyTorch (transformers 后端)

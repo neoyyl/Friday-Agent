@@ -1,0 +1,20 @@
+{
+  "id": "baoyu-post-wechat",
+  "name": "公众号发布Pro",
+  "version": "1.0.0",
+  "description": "专业微信公众号发布工作流",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "BaoyuPostWechatSkill",
+  "capabilities": [
+    "wechat-pro",
+    "公众号发布",
+    "微信发布"
+  ],
+  "tags": [
+    "social",
+    "publishing"
+  ],
+  "icon": "📱",
+  "license": "MIT"
+}

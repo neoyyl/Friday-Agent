@@ -1,0 +1,21 @@
+{
+  "id": "proactive-agent",
+  "name": "主动式Agent",
+  "version": "1.0.0",
+  "description": "从被动执行转变为主动预测和改进",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "ProactiveAgentSkill",
+  "capabilities": [
+    "proactive",
+    "主动",
+    "预测",
+    "自主"
+  ],
+  "tags": [
+    "agent",
+    "meta"
+  ],
+  "icon": "🚀",
+  "license": "MIT"
+}

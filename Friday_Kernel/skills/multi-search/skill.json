@@ -1,0 +1,21 @@
+{
+  "id": "multi-search",
+  "name": "多引擎搜索",
+  "version": "1.0.0",
+  "description": "16 个搜索引擎集成",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "MultiSearchSkill",
+  "capabilities": [
+    "multi-search",
+    "多引擎",
+    "搜索引擎",
+    "全网搜索"
+  ],
+  "tags": [
+    "utility",
+    "search"
+  ],
+  "icon": "🔍",
+  "license": "MIT"
+}

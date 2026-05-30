@@ -1,0 +1,3 @@
+"""
+friday_gui package
+"""

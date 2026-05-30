@@ -1,0 +1,21 @@
+{
+  "id": "x-post",
+  "name": "X/Twitter发布",
+  "version": "1.0.0",
+  "description": "发布内容到 X (Twitter)",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "XPostSkill",
+  "capabilities": [
+    "x",
+    "twitter",
+    "发推",
+    "tweet"
+  ],
+  "tags": [
+    "social",
+    "publishing"
+  ],
+  "icon": "🐦",
+  "license": "MIT"
+}

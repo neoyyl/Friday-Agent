@@ -1,0 +1,23 @@
+{
+  "id": "academic-research",
+  "name": "学术论文搜索",
+  "version": "1.0.0",
+  "description": "使用 OpenAlex API 搜索学术论文，获取引用链和摘要",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "AcademicResearchSkill",
+  "capabilities": [
+    "academic",
+    "paper",
+    "论文",
+    "学术",
+    "搜索论文",
+    "citation"
+  ],
+  "tags": [
+    "research",
+    "academic"
+  ],
+  "icon": "📚",
+  "license": "MIT"
+}

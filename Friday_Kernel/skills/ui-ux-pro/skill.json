@@ -1,0 +1,21 @@
+{
+  "id": "ui-ux-pro",
+  "name": "UI/UX设计",
+  "version": "1.0.0",
+  "description": "专业的 UI/UX 设计智能和实现指导",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "UiUxProSkill",
+  "capabilities": [
+    "uiux",
+    "ui/ux",
+    "交互设计",
+    "用户体验"
+  ],
+  "tags": [
+    "design",
+    "ux"
+  ],
+  "icon": "🎯",
+  "license": "MIT"
+}

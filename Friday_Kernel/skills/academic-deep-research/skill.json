@@ -1,0 +1,21 @@
+{
+  "id": "academic-deep-research",
+  "name": "学术深度研究",
+  "version": "1.0.0",
+  "description": "透明严谨的学术研究方法论",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "AcademicDeepResearchSkill",
+  "capabilities": [
+    "academic-research",
+    "学术研究",
+    "文献综述",
+    "研究方法"
+  ],
+  "tags": [
+    "research",
+    "academic"
+  ],
+  "icon": "🎓",
+  "license": "MIT"
+}

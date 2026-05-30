@@ -1,0 +1,21 @@
+{
+  "id": "word",
+  "name": "Word处理",
+  "version": "1.0.0",
+  "description": "创建、检查、编辑 Word 文档",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "WordSkill",
+  "capabilities": [
+    "docx",
+    "word",
+    "文档",
+    "文字处理"
+  ],
+  "tags": [
+    "office",
+    "document"
+  ],
+  "icon": "📝",
+  "license": "MIT"
+}

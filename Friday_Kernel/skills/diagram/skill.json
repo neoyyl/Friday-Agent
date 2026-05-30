@@ -1,0 +1,13 @@
+{
+  "id": "diagram",
+  "name": "图表生成",
+  "version": "1.0.0",
+  "description": "生成流程图、架构图、思维导图、时序图等 SVG 图表",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "DiagramSkill",
+  "capabilities": ["diagram", "chart", "图表", "流程图", "架构图", "思维导图", "flowchart"],
+  "tags": ["creative", "visualization", "diagram"],
+  "icon": "📐",
+  "license": "MIT"
+}

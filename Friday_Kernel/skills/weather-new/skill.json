@@ -1,0 +1,13 @@
+{
+  "id": "weather",
+  "name": "天气查询",
+  "version": "1.0.0",
+  "description": "查询全球城市实时天气和多日预报，使用 wttr.in 免费 API",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "WeatherSkill",
+  "capabilities": ["weather", "forecast", "temperature", "天气", "天气查询", "预报"],
+  "tags": ["utility", "weather", "realtime"],
+  "icon": "🌤️",
+  "license": "MIT"
+}

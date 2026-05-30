@@ -14,8 +14,8 @@ dist-ssr
 release
 *.local
 
-# Friday Kernel (Python backend)
-Friday_Kernel/
+# Friday Kernel — tracked individually
+# (see Friday_Kernel/.gitignore for exclusions)
 
 # Editor directories and files
 .vscode/*

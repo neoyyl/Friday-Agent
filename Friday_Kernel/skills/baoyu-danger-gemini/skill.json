@@ -1,0 +1,20 @@
+{
+  "id": "baoyu-danger-gemini",
+  "name": "Gemini生成",
+  "version": "1.0.0",
+  "description": "通过 Gemini Web API 生成图片和文本",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "BaoyuDangerGeminiSkill",
+  "capabilities": [
+    "gemini",
+    "gemini-image",
+    "gemini生成"
+  ],
+  "tags": [
+    "ai",
+    "generation"
+  ],
+  "icon": "🌟",
+  "license": "MIT"
+}

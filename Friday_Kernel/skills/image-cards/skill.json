@@ -1,0 +1,21 @@
+{
+  "id": "image-cards",
+  "name": "图片卡片",
+  "version": "1.0.0",
+  "description": "生成小红书/微信风格的信息图卡片",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "ImageCardsSkill",
+  "capabilities": [
+    "image-cards",
+    "图片卡片",
+    "小红书",
+    "种草图"
+  ],
+  "tags": [
+    "social",
+    "content"
+  ],
+  "icon": "🃏",
+  "license": "MIT"
+}

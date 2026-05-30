@@ -1,0 +1,21 @@
+{
+  "id": "powerpoint",
+  "name": "PPT处理",
+  "version": "1.0.0",
+  "description": "创建、检查、编辑 PowerPoint 演示文稿",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "PowerpointSkill",
+  "capabilities": [
+    "pptx",
+    "powerpoint",
+    "ppt",
+    "演示文稿"
+  ],
+  "tags": [
+    "office",
+    "presentation"
+  ],
+  "icon": "📽️",
+  "license": "MIT"
+}

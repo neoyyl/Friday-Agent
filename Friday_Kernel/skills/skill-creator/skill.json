@@ -1,0 +1,20 @@
+{
+  "id": "skill-creator",
+  "name": "Skill创建",
+  "version": "1.0.0",
+  "description": "创建有效的 Agent Skill 指南",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "SkillCreatorSkill",
+  "capabilities": [
+    "skill-creator",
+    "创建skill",
+    "技能创建"
+  ],
+  "tags": [
+    "meta",
+    "development"
+  ],
+  "icon": "🛠️",
+  "license": "MIT"
+}

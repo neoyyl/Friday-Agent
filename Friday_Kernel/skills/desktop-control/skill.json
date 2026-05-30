@@ -1,0 +1,20 @@
+{
+  "id": "desktop-control",
+  "name": "桌面自动化",
+  "version": "1.0.0",
+  "description": "高级桌面自动化控制",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "DesktopControlSkill",
+  "capabilities": [
+    "desktop",
+    "自动化",
+    "gui",
+    "rpa"
+  ],
+  "tags": [
+    "automation"
+  ],
+  "icon": "🤖",
+  "license": "MIT"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "url-to-markdown",
+  "name": "网页转Markdown",
+  "version": "1.0.0",
+  "description": "将任意网页 URL 转为 Markdown",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "UrlToMarkdownSkill",
+  "capabilities": [
+    "url-md",
+    "网页转md",
+    "保存网页",
+    "webclip"
+  ],
+  "tags": [
+    "utility",
+    "conversion"
+  ],
+  "icon": "🔗",
+  "license": "MIT"
+}

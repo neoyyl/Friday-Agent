@@ -1,0 +1,20 @@
+{
+  "id": "find-skills",
+  "name": "Skill发现",
+  "version": "1.0.0",
+  "description": "从 ClawHub、GitHub 等发现和安装 Skills",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "FindSkillsSkill",
+  "capabilities": [
+    "find-skills",
+    "发现skill",
+    "搜索skill",
+    "安装skill"
+  ],
+  "tags": [
+    "meta"
+  ],
+  "icon": "🔍",
+  "license": "MIT"
+}

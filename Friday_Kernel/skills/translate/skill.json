@@ -1,0 +1,13 @@
+{
+  "id": "translate",
+  "name": "智能翻译",
+  "version": "1.0.0",
+  "description": "多语言互译，支持中英日韩等主流语言自动检测与翻译",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "TranslateSkill",
+  "capabilities": ["translate", "translation", "翻译", "互译", "language"],
+  "tags": ["utility", "language", "translation"],
+  "icon": "🌐",
+  "license": "MIT"
+}

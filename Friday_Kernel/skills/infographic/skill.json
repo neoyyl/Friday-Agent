@@ -1,0 +1,21 @@
+{
+  "id": "infographic",
+  "name": "信息图",
+  "version": "1.0.0",
+  "description": "将复杂信息可视化为专业信息图",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "InfographicSkill",
+  "capabilities": [
+    "infographic",
+    "信息图",
+    "可视化",
+    "数据图"
+  ],
+  "tags": [
+    "creative",
+    "data"
+  ],
+  "icon": "📊",
+  "license": "MIT"
+}

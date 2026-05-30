@@ -1,0 +1,22 @@
+{
+  "id": "slide-deck",
+  "name": "演示文稿",
+  "version": "1.0.0",
+  "description": "将内容转化为专业幻灯片图片",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "SlideDeckSkill",
+  "capabilities": [
+    "slides",
+    "ppt",
+    "演示",
+    "幻灯片",
+    "deck"
+  ],
+  "tags": [
+    "creative",
+    "presentation"
+  ],
+  "icon": "📽️",
+  "license": "MIT"
+}

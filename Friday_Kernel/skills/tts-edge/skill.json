@@ -1,0 +1,13 @@
+{
+  "id": "tts-edge",
+  "name": "语音合成",
+  "version": "1.0.0",
+  "description": "使用 Edge TTS 将文本转为自然语音，支持多语言多音色",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "TTSEdgeSkill",
+  "capabilities": ["tts", "voice", "speech", "语音", "朗读", "语音合成"],
+  "tags": ["utility", "voice", "tts"],
+  "icon": "🔊",
+  "license": "MIT"
+}

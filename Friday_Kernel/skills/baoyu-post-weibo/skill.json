@@ -1,0 +1,20 @@
+{
+  "id": "baoyu-post-weibo",
+  "name": "微博发布Pro",
+  "version": "1.0.0",
+  "description": "专业微博发布工作流",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "BaoyuPostWeiboSkill",
+  "capabilities": [
+    "weibo-pro",
+    "微博专业",
+    "头条文章"
+  ],
+  "tags": [
+    "social",
+    "publishing"
+  ],
+  "icon": "📢",
+  "license": "MIT"
+}

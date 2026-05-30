@@ -1,0 +1,21 @@
+{
+  "id": "excel",
+  "name": "Excel处理",
+  "version": "1.0.0",
+  "description": "创建、检查、编辑 Excel 工作簿",
+  "author": "Friday",
+  "entry": "main.py",
+  "class": "ExcelSkill",
+  "capabilities": [
+    "excel",
+    "xlsx",
+    "表格",
+    "电子表格"
+  ],
+  "tags": [
+    "office",
+    "data"
+  ],
+  "icon": "📊",
+  "license": "MIT"
+}

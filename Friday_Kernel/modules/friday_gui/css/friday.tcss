@@ -1,0 +1,232 @@
+/* Friday TUI - 全局样式 */
+
+Screen {
+    background: #0d1117;
+}
+
+/* ===== 顶部状态栏 ===== */
+#header {
+    height: 3;
+    dock: top;
+    background: #161b22;
+    padding: 0 1;
+}
+
+#header Label {
+    color: #8b949e;
+}
+
+#status-indicator {
+    width: 14;
+    content-align: center middle;
+}
+
+#status-text {
+    width: 20;
+    text-style: bold;
+}
+
+#time-display {
+    width: 20;
+    text-align: right;
+}
+
+/* ===== 主内容区域 ===== */
+#main-container {
+    height: 1fr;
+}
+
+/* ===== 左侧面板 ===== */
+#left-panel {
+    width: 35%;
+    min-width: 30;
+    border-right: solid #21262d;
+    padding: 1;
+}
+
+#status-card {
+    height: 12;
+    border: solid #30363d;
+    margin: 0 0 1 0;
+    padding: 1;
+}
+
+#status-circle {
+    width: 8;
+    height: 8;
+    min-width: 8;
+}
+
+.circle-idle {
+    background: #1a1a2e;
+    color: #00d2ff;
+}
+
+.circle-listening {
+    background: #003d5c;
+    color: #00d2ff;
+}
+
+.circle-thinking {
+    background: #2d1b69;
+    color: #7c3aed;
+}
+
+.circle-speaking {
+    background: #064e3b;
+    color: #10b981;
+}
+
+#status-details {
+    height: 1fr;
+}
+
+#status-details Label {
+    margin: 0 0 0 1;
+}
+
+.status-label {
+    color: #8b949e;
+}
+
+.status-value {
+    color: #c9d1d9;
+}
+
+/* ===== 快捷操作 ===== */
+#quick-actions {
+    height: 8;
+    border: solid #30363d;
+    margin: 0 0 1 0;
+    padding: 1;
+}
+
+#quick-actions Button {
+    width: 1fr;
+    margin: 0 1 1 0;
+}
+
+/* 按钮样式 */
+Button {
+    background: #21262d;
+    color: #c9d1d9;
+    border: none;
+    padding: 0 2;
+}
+
+Button:hover {
+    background: #30363d;
+}
+
+Button.primary {
+    background: #0f3460;
+    color: #00d2ff;
+}
+
+Button.success {
+    background: #064e3b;
+    color: #10b981;
+}
+
+Button.warning {
+    background: #3d2e00;
+    color: #d29922;
+}
+
+/* ===== 右侧面板 ===== */
+#right-panel {
+    width: 65%;
+    padding: 1;
+}
+
+#log-container {
+    border: solid #30363d;
+    height: 1fr;
+    margin: 0 0 1 0;
+}
+
+#log-container #log-title {
+    background: #161b22;
+    padding: 0 1;
+    color: #8b949e;
+    text-style: bold;
+    height: 3;
+}
+
+#log-view {
+    height: 1fr;
+}
+
+/* ===== 底部输入栏 ===== */
+#input-container {
+    height: 5;
+    dock: bottom;
+    border-top: solid #21262d;
+    background: #161b22;
+    padding: 0 1;
+}
+
+#input-bar {
+    height: 3;
+}
+
+#input-bar Input {
+    width: 1fr;
+    background: #0d1117;
+    color: #c9d1d9;
+    border: solid #30363d;
+}
+
+#input-bar Input:focus {
+    border: solid #00d2ff;
+}
+
+/* ===== 其他 ===== */
+#mic-indicator {
+    width: 3;
+    content-align: center middle;
+}
+
+.mic-off {
+    color: #484f58;
+}
+
+.mic-on {
+    color: #00d2ff;
+    text-style: bold;
+}
+
+/* ===== 日志条目 ===== */
+.log-entry {
+    height: 1;
+}
+
+.log-time {
+    color: #484f58;
+    width: 12;
+}
+
+.log-info {
+    color: #8b949e;
+}
+
+.log-wake {
+    color: #00d2ff;
+    text-style: bold;
+}
+
+.log-command {
+    color: #7c3aed;
+}
+
+.log-speak {
+    color: #10b981;
+}
+
+.log-warn {
+    color: #d29922;
+}
+
+.log-error {
+    color: #f85149;
+}

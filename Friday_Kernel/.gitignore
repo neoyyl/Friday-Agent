@@ -1,0 +1,27 @@
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# 大模型文件（228MB）
+models/
+
+# 运行日志
+logs/
+*.log
+
+# 临时文件
+temp/
+
+# 运行时数据（自动生成）
+modules/data/
+data/
+
+# 报告
+reports/
+
+# 环境
+.env
+.venv
+venv/
