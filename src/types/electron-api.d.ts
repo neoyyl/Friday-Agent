@@ -291,7 +291,27 @@ interface HealFixResponse { fixed: number; failed: number; fixes: Array<{ issue:
 interface MemoryListResponse { context: Array<{ role: string; content: string }>; facts: string[] }
 interface MemoryContextResponse { context: Array<{ role: string; content: string }>; facts: string[] }
 
-interface GPUStatusResponse { available: boolean; name?: string; memory_total?: number; memory_used?: number; utilization?: number; temperature?: number }
+interface GPUChipResponse {
+  index: number
+  name: string
+  temperature: number
+  utilization: number
+  memory: { used_mb: number; total_mb: number; free_mb: number }
+  power: number | null
+  maxPower: number | null
+}
+
+interface GPUStatusResponse {
+  available: boolean
+  error?: string
+  level: 'green' | 'yellow' | 'orange' | 'red'
+  summary: string
+  used_vram_mb: number
+  total_vram_mb: number
+  vram_percent: number
+  warnings: string[]
+  gpus: GPUChipResponse[]
+}
 
 interface ObsidianConfigResponse { vault_path: string; exists: boolean; configured: boolean }
 interface ObsidianNoteResponse { name: string; path: string; size: number; modified: number }

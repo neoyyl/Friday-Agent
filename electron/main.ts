@@ -31,7 +31,7 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 let win: BrowserWindow | null
 
 // ========== Native Backend Service Registry ==========
-const serviceRegistry = new ServiceRegistry()
+const serviceRegistry = ServiceRegistry.getInstance()
 
 serviceRegistry.getEventBus().onEvent((event: string, data: unknown) => {
   if (win && !win.isDestroyed()) {

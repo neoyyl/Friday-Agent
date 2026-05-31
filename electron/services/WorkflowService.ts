@@ -1,8 +1,12 @@
 import { ServiceBase } from './ServiceBase'
+import { ServiceRegistry } from './ServiceRegistry'
+import { workflowPresets, WorkflowPreset } from './WorkflowPresets'
+import { executeTool } from '../../src/services/tools'
 
 interface WorkflowStep {
   name: string
-  action: string
+  action: 'tool' | 'skill' | 'agent' | 'event'
+  target_id?: string
   params?: Record<string, unknown>
 }
 
@@ -33,7 +37,7 @@ export class WorkflowService extends ServiceBase {
   constructor() {
     super({
       name: 'workflows',
-      version: '2.0.0',
+      version: '2.1.0',
       description: 'Multi-step workflow orchestration with real execution',
     })
   }
@@ -57,7 +61,7 @@ export class WorkflowService extends ServiceBase {
     const steps = typeof workflow.steps === 'number'
       ? Array.from({ length: workflow.steps }, (_, i) => ({
           name: `step${i + 1}`,
-          action: 'event',
+          action: 'event' as const,
         }))
       : (workflow.steps || [])
     const newWf: WorkflowDef = {
@@ -142,10 +146,69 @@ export class WorkflowService extends ServiceBase {
     this.emit('workflow.action', {
       name: step.name,
       action: step.action,
+      target_id: step.target_id,
       params: step.params,
       timestamp: new Date().toISOString(),
     })
-    await this.delay(100)
+
+    const params = step.params || {}
+
+    switch (step.action) {
+      case 'tool':
+        await this.executeToolAction(step.target_id, params)
+        break
+      case 'skill':
+        await this.executeSkillAction(step.target_id, params)
+        break
+      case 'agent':
+        await this.executeAgentAction(step.target_id, params)
+        break
+      case 'event':
+      default:
+        await this.delay(100)
+        break
+    }
+  }
+
+  private async executeToolAction(
+    toolId: string | undefined,
+    params: Record<string, unknown>
+  ): Promise<void> {
+    if (!toolId) throw new Error('tool id required for tool action')
+    const result = await executeTool(toolId, params as any)
+    if (!result.success) {
+      throw new Error(result.error || 'tool execution failed')
+    }
+  }
+
+  private async executeSkillAction(
+    skillId: string | undefined,
+    params: Record<string, unknown>
+  ): Promise<void> {
+    if (!skillId) throw new Error('skill id required for skill action')
+    const registry = ServiceRegistry.getInstance()
+    const skillService = registry.get('skills')
+    if (skillService) {
+      await (skillService as any).call(skillId, params)
+    } else {
+      throw new Error('SkillService not available')
+    }
+  }
+
+  private async executeAgentAction(
+    agentId: string | undefined,
+    params: Record<string, unknown>
+  ): Promise<void> {
+    if (!agentId) throw new Error('agent id required for agent action')
+    const registry = ServiceRegistry.getInstance()
+    const agentService = registry.get('agents')
+    if (agentService) {
+      const task = (params.task as string) || ''
+      const mode = (params.mode as string) || 'chat'
+      await (agentService as any).dispatch(task, mode)
+    } else {
+      throw new Error('AgentService not available')
+    }
   }
 
   cancel(id: string): { success: boolean } {
@@ -171,5 +234,45 @@ export class WorkflowService extends ServiceBase {
 
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
+  listPresets(): { presets: WorkflowPreset[] } {
+    return { presets: [...workflowPresets] }
+  }
+
+  createFromPreset(presetId: string, params?: Record<string, string>): WorkflowDef {
+    const preset = workflowPresets.find(p => p.id === presetId)
+    if (!preset) throw new Error(`preset not found: ${presetId}`)
+
+    const steps = preset.steps.map(step => {
+      const processedParams = this.interpolateParams(step.params, params || {})
+      return { ...step, params: processedParams }
+    })
+
+    return this.create({
+      name: preset.name,
+      description: preset.description,
+      steps
+    })
+  }
+
+  private interpolateParams(
+    params: Record<string, unknown> | undefined,
+    replacements: Record<string, string>
+  ): Record<string, unknown> | undefined {
+    if (!params) return undefined
+    const result: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(params)) {
+      if (typeof value === 'string') {
+        let processed = value
+        for (const [k, v] of Object.entries(replacements)) {
+          processed = processed.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), v)
+        }
+        result[key] = processed
+      } else {
+        result[key] = value
+      }
+    }
+    return result
   }
 }

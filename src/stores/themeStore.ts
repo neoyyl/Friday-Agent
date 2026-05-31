@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type ThemeName = 'midnight' | 'phosphor' | 'violet' | 'rose' | 'arctic' | 'sand'
+export type ThemeName = 'midnight' | 'phosphor' | 'violet' | 'rose' | 'arctic' | 'sand' | 'cyberpunk' | 'stardust' | 'matcha' | 'sakura' | 'aurora' | 'deepsea'
 
 interface ThemeState {
   currentTheme: ThemeName
@@ -9,7 +9,7 @@ interface ThemeState {
   cycleTheme: () => void
 }
 
-const THEMES: ThemeName[] = ['midnight', 'phosphor', 'violet', 'rose', 'arctic', 'sand']
+const THEMES: ThemeName[] = ['midnight', 'phosphor', 'violet', 'rose', 'arctic', 'sand', 'cyberpunk', 'stardust', 'matcha', 'sakura', 'aurora', 'deepsea']
 
 export const useThemeStore = create<ThemeState>()(
   persist(

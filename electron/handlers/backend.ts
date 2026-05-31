@@ -18,6 +18,7 @@ import { TriggerService } from '../services/TriggerService'
 import { WorkflowService } from '../services/WorkflowService'
 import { EmotionService } from '../services/EmotionService'
 import { VoiceService } from '../services/VoiceService'
+import { OrchestrationService } from '../services/OrchestrationService'
 
 function wrapError(e: unknown): { error: string } {
   return { error: e instanceof Error ? e.message : String(e) }
@@ -47,6 +48,7 @@ export function registerBackendHandlers(registry: ServiceRegistry): void {
     workflows: () => registry.get<WorkflowService>('workflows'),
     emotion: () => registry.get<EmotionService>('emotion'),
     voice: () => registry.get<VoiceService>('voice'),
+    orchestration: () => registry.get<OrchestrationService>('orchestration'),
   }
 
   ipcMain.handle('backend:start', async () => {
@@ -92,7 +94,10 @@ export function registerBackendHandlers(registry: ServiceRegistry): void {
         if (path === 'perception/window') return success(svc.perception()?.getWindowContext())
         if (path === 'perception/git') return success(svc.perception()?.getGitContext())
         if (path === 'perception/project') return success(svc.perception()?.getProjectContext())
-        if (path === 'gpu/status') return success(svc.gpu()?.queryStatus())
+        if (path === 'gpu/status') {
+          const gpu = svc.gpu()
+          return success(gpu ? await gpu.queryStatus() : { available: false, error: 'GPUService not available' })
+        }
         if (path === 'obsidian/config') return success(svc.obsidian()?.getConfig())
         if (path === 'personality') return success(svc.personality()?.get())
         if (path.startsWith('obsidian/notes')) return success(svc.obsidian()?.listNotes((body as any)?.folder || ''))
@@ -275,6 +280,14 @@ export function registerBackendHandlers(registry: ServiceRegistry): void {
     try { return success(svc.workflows()?.getInstances()) } catch (e) { return wrapError(e) }
   })
 
+  ipcMain.handle('backend:workflows:presets', async () => {
+    try { return success(svc.workflows()?.listPresets()) } catch (e) { return wrapError(e) }
+  })
+
+  ipcMain.handle('backend:workflows:createFromPreset', async (_event, presetId: string, params?: any) => {
+    try { return success(svc.workflows()?.createFromPreset(presetId, params)) } catch (e) { return wrapError(e) }
+  })
+
   ipcMain.handle('backend:emotion:analyze', async (_event, text: string) => {
     try { return success(svc.emotion()?.analyze(text)) } catch (e) { return wrapError(e) }
   })
@@ -315,8 +328,20 @@ export function registerBackendHandlers(registry: ServiceRegistry): void {
     try { return success(svc.voice()?.identify(data)) } catch (e) { return wrapError(e) }
   })
 
+  ipcMain.handle('backend:asr:status', async () => {
+    try { return success(svc.voice()?.getASRStatus()) } catch (e) { return wrapError(e) }
+  })
+  
+  ipcMain.handle('backend:asr:start', async (_event, lang?: string) => {
+    try { return success(await svc.voice()?.startListening(lang)) } catch (e) { return wrapError(e) }
+  })
+  
+  ipcMain.handle('backend:asr:stop', async () => {
+    try { return success(svc.voice()?.stopListening()) } catch (e) { return wrapError(e) }
+  })
+  
   ipcMain.handle('backend:asr:transcribe', async (_event, audioBase64: string, lang?: string) => {
-    try { return success(svc.voice()?.transcribe(audioBase64, lang)) } catch (e) { return wrapError(e) }
+    try { return success(await svc.voice()?.transcribe(audioBase64, lang)) } catch (e) { return wrapError(e) }
   })
 
   ipcMain.handle('backend:dispatch:stats', async () => {
@@ -368,7 +393,11 @@ export function registerBackendHandlers(registry: ServiceRegistry): void {
   })
 
   ipcMain.handle('backend:gpu:status', async () => {
-    try { return success(svc.gpu()?.queryStatus()) } catch (e) { return wrapError(e) }
+    try {
+      const gpu = svc.gpu()
+      if (!gpu) return wrapError(new Error('GPUService not available'))
+      return success(await gpu.queryStatus())
+    } catch (e) { return wrapError(e) }
   })
 
   ipcMain.handle('backend:obsidian:config', async () => {
@@ -389,5 +418,29 @@ export function registerBackendHandlers(registry: ServiceRegistry): void {
 
   ipcMain.handle('backend:health', async () => {
     try { return success(svc.health()?.check()) } catch (e) { return wrapError(e) }
+  })
+
+  ipcMain.handle('backend:orchestration:autoExecute', async (_event, task: string) => {
+    try {
+      const orchService = svc.orchestration()
+      if (orchService) {
+        return success(await (orchService as OrchestrationService).autoExecute(task))
+      }
+      return wrapError(new Error('OrchestrationService not available'))
+    } catch (e) {
+      return wrapError(e)
+    }
+  })
+
+  ipcMain.handle('backend:orchestration:understand', async (_event, task: string) => {
+    try {
+      const orchService = svc.orchestration()
+      if (orchService) {
+        return success((orchService as OrchestrationService).understandIntent(task))
+      }
+      return wrapError(new Error('OrchestrationService not available'))
+    } catch (e) {
+      return wrapError(e)
+    }
   })
 }

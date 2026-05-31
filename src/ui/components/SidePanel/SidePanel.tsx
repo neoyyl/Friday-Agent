@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useLanguageStore } from '../../../stores/languageStore'
+import { useTranslation } from '../../../stores/languageStore'
 
 interface StreamEntry {
   id: number
@@ -18,7 +18,7 @@ interface SidePanelProps {
 export function SidePanel({ activeLayer, onLayerChange }: SidePanelProps) {
   const [l1Data, setL1Data] = useState<StreamEntry[]>([])
   const [l2Data, setL2Data] = useState<StreamEntry[]>([])
-  const { t } = useLanguageStore()
+  const { t } = useTranslation()
 
   // Listen for backend events and populate streams
   useEffect(() => {
@@ -126,11 +126,8 @@ export function SidePanel({ activeLayer, onLayerChange }: SidePanelProps) {
 
   return (
     <div style={{
-      width: '360px',
-      borderRight: '1px solid var(--border)',
-      background: 'var(--bg)',
+      height: '100%',
       overflow: 'auto',
-      flexShrink: 0,
     }}>
       {/* Header */}
       <div style={{

@@ -1,5 +1,7 @@
 import { ServiceBase } from './ServiceBase'
 import { AppEventBus } from './EventBus'
+import * as nodeCron from 'node-cron'
+import type { ScheduledTask } from 'node-cron'
 
 interface Trigger {
   id: string
@@ -21,6 +23,7 @@ export class TriggerService extends ServiceBase {
   private triggers: Trigger[] = []
   private actions = new Map<string, TriggerAction[]>()
   private unsubEventBus: (() => void) | null = null
+  private cronTasks = new Map<string, ScheduledTask>()
 
   constructor() {
     super({
@@ -38,6 +41,10 @@ export class TriggerService extends ServiceBase {
   }
 
   async shutdown(): Promise<void> {
+    for (const task of this.cronTasks.values()) {
+      task.stop()
+    }
+    this.cronTasks.clear()
     this.unsubEventBus?.()
     this.unsubEventBus = null
     this.triggers = []
@@ -60,6 +67,9 @@ export class TriggerService extends ServiceBase {
       fired_count: 0,
     }
     this.triggers.push(newTrigger)
+    if (newTrigger.enabled && newTrigger.type === 'cron') {
+      this.scheduleCronTrigger(newTrigger)
+    }
     this.emit('triggers.updated', { triggers: this.triggers })
     return newTrigger
   }
@@ -67,6 +77,7 @@ export class TriggerService extends ServiceBase {
   delete(id: string): { success: boolean } {
     const idx = this.triggers.findIndex((t) => t.id === id)
     if (idx === -1) return { success: false }
+    this.unscheduleCronTrigger(id)
     this.triggers.splice(idx, 1)
     this.emit('triggers.updated', { triggers: this.triggers })
     return { success: true }
@@ -76,6 +87,15 @@ export class TriggerService extends ServiceBase {
     const trigger = this.triggers.find((t) => t.id === id)
     if (!trigger) return null
     trigger.enabled = !trigger.enabled
+
+    if (trigger.type === 'cron') {
+      if (trigger.enabled) {
+        this.scheduleCronTrigger(trigger)
+      } else {
+        this.unscheduleCronTrigger(trigger.id)
+      }
+    }
+
     this.emit('triggers.updated', { triggers: this.triggers })
     return { ...trigger }
   }
@@ -99,6 +119,37 @@ export class TriggerService extends ServiceBase {
       const list = this.actions.get(name) || []
       const idx = list.indexOf(entry)
       if (idx !== -1) list.splice(idx, 1)
+    }
+  }
+
+  private scheduleCronTrigger(trigger: Trigger): void {
+    this.unscheduleCronTrigger(trigger.id)
+
+    const config = trigger.config as Record<string, unknown>
+    const schedule = config.schedule as string
+
+    if (!nodeCron.validate(schedule)) {
+      console.warn(`[TriggerService] Invalid cron schedule for trigger "${trigger.name}": ${schedule}`)
+      return
+    }
+
+    try {
+      const task = nodeCron.schedule(schedule, () => {
+        this.fireTrigger(trigger, 'cron', { schedule })
+      }, {
+        timezone: process.env.TZ || 'Asia/Hong_Kong',
+      })
+      this.cronTasks.set(trigger.id, task)
+    } catch (err) {
+      console.error(`[TriggerService] Failed to schedule cron trigger "${trigger.name}":`, err)
+    }
+  }
+
+  private unscheduleCronTrigger(triggerId: string): void {
+    const task = this.cronTasks.get(triggerId)
+    if (task) {
+      task.stop()
+      this.cronTasks.delete(triggerId)
     }
   }
 
@@ -127,6 +178,10 @@ export class TriggerService extends ServiceBase {
         const actual = (data as Record<string, unknown>)[field]
         return this.compareValues(actual, operator, expectedValue)
       }
+      return true
+    }
+
+    if (triggerType === 'cron') {
       return true
     }
 

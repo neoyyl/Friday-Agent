@@ -57,8 +57,8 @@
   },
   "publish": {
     "provider": "github",
-    "owner": "friday-team",
-    "repo": "friday-agent",
+    "owner": "neoyyl",
+    "repo": "Friday-Agent",
     "releaseType": "release",
     "publishAutoUpdate": true
   }

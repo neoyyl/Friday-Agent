@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 const levelColor = (level: string) => {
   switch (level) {
     case 'green': return '#22c55e'
     case 'yellow': return '#eab308'
     case 'orange': return '#f97316'
+    case 'red': return '#ef4444'
     default: return 'var(--text-dim)'
   }
 }
@@ -29,12 +30,14 @@ const Bar = ({ value, max, color }: { value: number; max: number; color: string 
 export function GPUMonitor() {
   const [gpu, setGpu] = useState<Record<string, any> | null>(null)
   const [loading, setLoading] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const loadGPU = useCallback(async () => {
     setLoading(true)
     try {
       const result = await window.electronAPI?.backend?.gpu?.status()
-      setGpu(result ?? null)
+      const data = result?.success !== undefined ? (result as any).data ?? null : result ?? null
+      setGpu(data)
     } catch (err: any) {
       console.error('[GPUMonitor] load failed:', err)
     } finally {
@@ -42,7 +45,13 @@ export function GPUMonitor() {
     }
   }, [])
 
-  useEffect(() => { loadGPU() }, [loadGPU])
+  useEffect(() => {
+    loadGPU()
+    timerRef.current = setInterval(loadGPU, 30000)
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [loadGPU])
 
   const data = gpu as Record<string, any> | null
 

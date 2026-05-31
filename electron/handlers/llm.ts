@@ -160,6 +160,36 @@ export function registerLLMHandlers(): void {
     }
   )
 
+  ipcMain.handle('llm:agentChat', async (
+    _event,
+    messages: Array<{ role: string; content: string }>,
+    options?: ResolveClientOptions
+  ) => {
+    try {
+      const { client, model, temperature, maxTokens } = resolveClient(options)
+      const response = await client.chat(
+        messages.map((msg) => ({
+          role: msg.role as 'system' | 'user' | 'assistant' | 'tool',
+          content: msg.content,
+        })),
+        { model, temperature, maxTokens }
+      )
+      const msg = response.choices[0]?.message
+      return {
+        content: msg?.content || '',
+        role: 'assistant',
+        error: null
+      }
+    } catch (error) {
+      console.error('Agent LLM chat error:', error)
+      return {
+        content: '',
+        role: 'assistant',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  })
+
   ipcMain.handle('llm:getModels', () => {
     return getAllProviders().flatMap((p) =>
       p.defaultModels.map((m) => ({ id: m.id, name: m.name, provider: p.name }))

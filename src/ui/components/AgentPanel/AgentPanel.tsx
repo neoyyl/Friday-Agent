@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAgentStore, Agent } from '../../../stores/agentStore'
+import { ModeSelector } from './ModeSelector'
 
 export function AgentPanel() {
   const { agents, stats, isDispatching, lastResult, loadAgents, loadStats, dispatchTask } = useAgentStore()
@@ -37,24 +38,11 @@ export function AgentPanel() {
 
       {/* Task Input */}
       <div style={{ marginBottom: '16px' }}>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-          <select
-            value={mode}
-            onChange={(e) => setMode(e.target.value)}
-            style={{
-              padding: '6px 8px',
-              borderRadius: '6px',
-              border: '1px solid var(--border)',
-              background: 'var(--bg)',
-              color: 'var(--text)',
-              fontSize: '12px',
-            }}
-          >
-            <option value="direct">直连</option>
-            <option value="chain">链式</option>
-            <option value="parallel">并行</option>
-            <option value="hybrid">混合</option>
-          </select>
+        <div style={{ marginBottom: '8px', fontSize: '11px', fontWeight: 600, color: 'var(--text-dim)', letterSpacing: '0.04em' }}>
+          执行模式
+        </div>
+        <ModeSelector value={mode} onChange={setMode} />
+        <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
           <input
             type="text"
             value={taskInput}

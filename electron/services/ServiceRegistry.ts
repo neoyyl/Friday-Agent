@@ -18,10 +18,22 @@ import { TriggerService } from './TriggerService'
 import { WorkflowService } from './WorkflowService'
 import { EmotionService } from './EmotionService'
 import { VoiceService } from './VoiceService'
+import { OrchestrationService } from './OrchestrationService'
+
+// 单例注册表
+let instance: ServiceRegistry | null = null
 
 export class ServiceRegistry {
   private services = new Map<string, ServiceBase>()
   private eventBus = AppEventBus.getInstance()
+
+  // 获取单例
+  static getInstance(): ServiceRegistry {
+    if (!instance) {
+      instance = new ServiceRegistry()
+    }
+    return instance
+  }
 
   async initAll(): Promise<void> {
     const allServices: ServiceBase[] = [
@@ -43,6 +55,7 @@ export class ServiceRegistry {
       new WorkflowService(),
       new EmotionService(),
       new VoiceService(),
+      new OrchestrationService(),
     ]
 
     for (const svc of allServices) {
@@ -83,5 +96,9 @@ export class ServiceRegistry {
 
   getEventBus(): AppEventBus {
     return this.eventBus
+  }
+
+  orchestration(): OrchestrationService | undefined {
+    return this.get<OrchestrationService>('orchestration')
   }
 }

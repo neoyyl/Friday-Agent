@@ -49,9 +49,11 @@ const translations = {
     
     THEME: '主题',
     
-    MEMORY_GRAPH: '记忆图谱',
-    SHOW_GRAPH: '显示记忆图谱',
-    GRAPH_HINT: '需要刷新页面生效',
+    MEMORY_GRAPH: '视觉效果',
+    GRAPH_MODE: '记忆图谱',
+    CLOUD_MODE: '点云云图',
+    DISPLAY_MODE: '显示模式',
+    HIDE_DISPLAY: '隐藏',
     
     SYSTEM_LANGUAGE: '系统语言',
     CHINESE: '中文',
@@ -88,6 +90,65 @@ const translations = {
     NEW_CONVERSATION: '新建对话',
     DELETE: '删除',
     RETRY: '重试',
+
+    SANDBOX: '安全沙箱',
+    SANDBOX_DESC: '启用后，文件操作和命令执行将受到安全限制',
+
+    THEME_MIDNIGHT: '午夜星云',
+    THEME_PHOSPHOR: '荧光绿',
+    THEME_VIOLET: '紫色星云',
+    THEME_ROSE: '玫瑰暖色',
+    THEME_ARCTIC: '极地白色',
+    THEME_SAND: '沙漠暖黄',
+    THEME_CYBERPUNK: '赛博朋克',
+    THEME_STARDUST: '星空',
+    THEME_MATCHA: '抹茶绿',
+    THEME_SAKURA: '樱花粉',
+    THEME_AURORA: '极光',
+    THEME_DEEPSEA: '深海蓝',
+
+    CHECK_UPDATE: '检查更新',
+    CHECKING: '检查中...',
+    NEW_VERSION: '发现新版本',
+    LATEST_VERSION: '已是最新版本',
+    DOWNLOADING: '下载中',
+    DOWNLOADED: '已下载',
+    CLICK_INSTALL: '点击安装',
+    UPDATE_FAILED: '更新失败',
+    INSTALL_UPDATE: '安装更新',
+    SAVE_SETTINGS: '保存设置',
+
+    YOUR_AI_PROVIDER: '你的 AI 提供商 API Key',
+    SELECT_AI_PROVIDER: '选择你的 AI 提供商',
+    SELECT_MODEL: '选择使用的模型',
+    SAMPLING_TEMP: '采样温度 (0-2)',
+    MAX_OUTPUT_TOKENS: '最大输出 Token 数',
+    SELECT_THEME_MODE: '选择主题模式',
+    SHOW_MEMORY_GRAPH: '显示记忆图谱',
+    VOICE_RECOGNITION_LANG: '语音识别和合成的语言',
+    VOICE_AUTO_SEND: '语音识别后自动发送消息',
+    VOICE_SYNTHESIS_PROVIDER: '语音合成提供商',
+    VOICE_SYNTHESIS_VOICE: '语音合成音色',
+    SYSTEM_NATIVE: '系统原生',
+
+    EXPAND_CHAT: '展开聊天',
+    COLLAPSE_CHAT: '收起聊天',
+    LOADING_MORE: '加载更多消息...',
+    EDIT_MESSAGE: '编辑消息',
+    SAVE_RESEND: '保存并重发',
+    CANCEL: '取消',
+    VOICE_LOADING: '语音加载中',
+    VOICE_UNAVAILABLE: '语音不可用',
+    VOICE_READY: '语音就绪',
+    STOP_RECORDING: '停止录音',
+    VOICE_INPUT: '语音输入',
+    RECORDING: '正在录音...',
+    RECOGNIZING: '识别中...',
+    DRAG_DROP: '拖放文件到此处上传',
+    REMOVE: '移除',
+    CONFIGURE_LLM: '请先配置 LLM API',
+
+    SCROLL_BOTTOM: '滚动到底部',
   },
   en: {
     SETTINGS: 'SETTINGS',
@@ -125,9 +186,11 @@ const translations = {
     
     THEME: 'Theme',
     
-    MEMORY_GRAPH: 'Memory Graph',
-    SHOW_GRAPH: 'Show Memory Graph',
-    GRAPH_HINT: 'Requires page reload',
+    MEMORY_GRAPH: 'Visual Effect',
+    GRAPH_MODE: 'Memory Graph',
+    CLOUD_MODE: 'Point Cloud',
+    DISPLAY_MODE: 'Display Mode',
+    HIDE_DISPLAY: 'Hide',
     
     SYSTEM_LANGUAGE: 'System Language',
     CHINESE: '中文',
@@ -164,25 +227,95 @@ const translations = {
     NEW_CONVERSATION: 'New Chat',
     DELETE: 'Delete',
     RETRY: 'Retry',
+
+    SANDBOX: 'Security Sandbox',
+    SANDBOX_DESC: 'When enabled, file operations and command execution will be subject to security restrictions',
+
+    THEME_MIDNIGHT: 'Midnight Nebula',
+    THEME_PHOSPHOR: 'Phosphor Green',
+    THEME_VIOLET: 'Purple Nebula',
+    THEME_ROSE: 'Rose Warm',
+    THEME_ARCTIC: 'Arctic White',
+    THEME_SAND: 'Desert Sand',
+    THEME_CYBERPUNK: 'Cyberpunk',
+    THEME_STARDUST: 'Stardust',
+    THEME_MATCHA: 'Matcha Green',
+    THEME_SAKURA: 'Sakura Pink',
+    THEME_AURORA: 'Aurora',
+    THEME_DEEPSEA: 'Deepsea Blue',
+
+    CHECK_UPDATE: 'Check for Updates',
+    CHECKING: 'Checking...',
+    NEW_VERSION: 'New version available',
+    LATEST_VERSION: 'Already up to date',
+    DOWNLOADING: 'Downloading',
+    DOWNLOADED: 'Downloaded',
+    CLICK_INSTALL: 'Click to install',
+    UPDATE_FAILED: 'Update failed',
+    INSTALL_UPDATE: 'Install Update',
+    SAVE_SETTINGS: 'Save Settings',
+
+    YOUR_AI_PROVIDER: 'Your AI Provider API Key',
+    SELECT_AI_PROVIDER: 'Select your AI Provider',
+    SELECT_MODEL: 'Select model to use',
+    SAMPLING_TEMP: 'Sampling Temperature (0-2)',
+    MAX_OUTPUT_TOKENS: 'Max Output Tokens',
+    SELECT_THEME_MODE: 'Select Theme Mode',
+    SHOW_MEMORY_GRAPH: 'Show Memory Graph',
+    VOICE_RECOGNITION_LANG: 'Voice Recognition & Synthesis Language',
+    VOICE_AUTO_SEND: 'Auto Send After Voice Recognition',
+    VOICE_SYNTHESIS_PROVIDER: 'Voice Synthesis Provider',
+    VOICE_SYNTHESIS_VOICE: 'Voice Synthesis Voice',
+    SYSTEM_NATIVE: 'System Native',
+
+    EXPAND_CHAT: 'Expand Chat',
+    COLLAPSE_CHAT: 'Collapse Chat',
+    LOADING_MORE: 'Loading more messages...',
+    EDIT_MESSAGE: 'Edit Message',
+    SAVE_RESEND: 'Save & Resend',
+    CANCEL: 'Cancel',
+    VOICE_LOADING: 'Voice Loading',
+    VOICE_UNAVAILABLE: 'Voice Unavailable',
+    VOICE_READY: 'Voice Ready',
+    STOP_RECORDING: 'Stop Recording',
+    VOICE_INPUT: 'Voice Input',
+    RECORDING: 'Recording...',
+    RECOGNIZING: 'Recognizing...',
+    DRAG_DROP: 'Drag and drop files here',
+    REMOVE: 'Remove',
+    CONFIGURE_LLM: 'Please configure LLM API first',
+
+    SCROLL_BOTTOM: 'Scroll to Bottom',
   }
 }
+
+type TranslationKey = keyof typeof translations.zh
 
 interface LanguageState {
   language: Language
-  t: (key: keyof typeof translations.zh) => string
   setLanguage: (lang: Language) => void
 }
 
-export const useLanguageStore = create<LanguageState>((set, get) => ({
+export const useLanguageStore = create<LanguageState>((set) => ({
   language: getStoredLanguage(),
   
-  t: (key) => {
-    const lang = get().language
-    return translations[lang][key] || translations['en'][key] || key
-  },
-  
   setLanguage: (lang) => {
-    localStorage.setItem('friday-language', lang)
+    localStorage.setItem(STORAGE_KEY, lang)
     set({ language: lang })
   }
 }))
+
+// 翻译函数 - 独立于 store
+export function t(key: TranslationKey, lang: Language): string {
+  return translations[lang][key] || translations['en'][key] || key
+}
+
+// 响应式翻译 hook
+export function useTranslation() {
+  const language = useLanguageStore((state) => state.language)
+  return {
+    language,
+    t: (key: TranslationKey) => t(key, language),
+    setLanguage: useLanguageStore((state) => state.setLanguage)
+  }
+}

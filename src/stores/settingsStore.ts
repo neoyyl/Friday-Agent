@@ -21,7 +21,12 @@ export interface Settings {
   ttsProvider: string
   ttsVoice: string
 
-  showGraph: boolean
+  displayMode: 'graph' | 'cloud' | 'none'
+
+  // 向后兼容
+  showGraph?: boolean
+
+  onboardingCompleted: boolean
 }
 
 interface SettingsState {
@@ -37,7 +42,7 @@ interface SettingsState {
   saveSettings: (settings: Partial<Settings>) => Promise<void>
 }
 
-const BOOLEAN_KEYS = new Set(['sandboxEnabled', 'voiceAutoSend', 'showGraph'])
+const BOOLEAN_KEYS = new Set(['sandboxEnabled', 'voiceAutoSend'])
 
 function serializeSettings(settings: Partial<Settings>): Record<string, string> {
   const result: Record<string, string> = {}
@@ -57,6 +62,20 @@ function deserializeSettings(raw: Record<string, string>): Partial<Settings> {
     if (key in result) {
       result[key] = result[key] === 'true'
     }
+  }
+  // 处理旧的 showGraph 字段向后兼容
+  if (result.showGraph !== undefined && typeof result.showGraph === 'string') {
+    result.showGraph = result.showGraph === 'true'
+  }
+  // 处理 displayMode 枚举，或者从 showGraph 迁移
+  if (result.displayMode && typeof result.displayMode === 'string') {
+    const validModes: Array<'graph' | 'cloud' | 'none'> = ['graph', 'cloud', 'none']
+    if (!validModes.includes(result.displayMode as typeof validModes[number])) {
+      result.displayMode = 'cloud'
+    }
+  } else if (result.showGraph !== undefined) {
+    // 如果没有 displayMode 但是有旧的 showGraph，进行迁移
+    result.displayMode = result.showGraph ? 'graph' : 'none'
   }
   if (result.providerConfigs && typeof result.providerConfigs === 'string') {
     try {
@@ -84,7 +103,8 @@ const defaultSettings: Settings = {
   voiceThreshold: '0.008',
   ttsProvider: 'openai',
   ttsVoice: 'alloy',
-  showGraph: true,
+  displayMode: 'cloud',
+  onboardingCompleted: false,
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({

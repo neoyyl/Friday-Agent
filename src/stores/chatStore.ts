@@ -26,6 +26,7 @@ interface ChatState {
   isLoadingMore: boolean
 
   setMessages: (messages: Message[]) => void
+  deleteMessage: (id: string) => void
   addMessage: (message: Omit<Message, 'id' | 'created_at'>) => string
   prependMessages: (messages: Message[]) => void
   updateMessage: (id: string, updates: Partial<Message>) => void
@@ -53,6 +54,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isLoadingMore: false,
 
   setMessages: (messages) => set({ messages }),
+
+  deleteMessage: (id: string) => {
+    set((state) => ({
+      messages: state.messages.filter((m) => m.id !== id),
+    }))
+  },
 
   addMessage: (message) => {
     const newMessage: Message = {

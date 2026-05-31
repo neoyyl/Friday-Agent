@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { CronEditor } from './CronEditor'
 
 const BACKEND_API = {
   get scheduler() { return window.electronAPI?.backend?.scheduler },
@@ -38,6 +39,7 @@ export function SchedulerPanel() {
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState<SchedulerForm>({ name: '', trigger_type: 'cron', trigger_args: {}, action_name: '' })
   const [saving, setSaving] = useState(false)
+  const [cronExpr, setCronExpr] = useState('0 9 * * *')
 
   const load = async () => {
     try {
@@ -138,21 +140,14 @@ export function SchedulerPanel() {
         }}
       />
       {tab === 'jobs' && (
-        <input
-          placeholder="Cron 表达式 (如 0 9 * * *)"
-          value={form.trigger_args?.hour ? `${form.trigger_args.hour} ${form.trigger_args.minute || 0} * * *` : ''}
-          onChange={(e) => {
-            const parts = e.target.value.split(' ')
+        <CronEditor
+          value={cronExpr}
+          onChange={(cron) => {
+            setCronExpr(cron)
+            const parts = cron.split(' ')
             if (parts.length >= 5) {
               setForm({ ...form, trigger_args: { minute: parts[0], hour: parts[1], day: parts[2] || '*', month: parts[3] || '*', day_of_week: parts[4] || '*' } })
-            } else {
-              setForm({ ...form, trigger_args: { ...form.trigger_args, raw: e.target.value } })
             }
-          }}
-          style={{
-            width: '100%', padding: '6px 8px', borderRadius: '4px',
-            border: '1px solid var(--border)', background: 'var(--bg)',
-            color: 'var(--text)', fontSize: '12px', marginBottom: '6px', boxSizing: 'border-box',
           }}
         />
       )}

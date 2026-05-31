@@ -1,12 +1,19 @@
 import * as nodeCron from 'node-cron'
 import type { ScheduledTask } from 'node-cron'
 import { ServiceBase } from './ServiceBase'
+import { ServiceRegistry } from './ServiceRegistry'
+
+interface JobAction {
+  type: 'agent' | 'workflow' | 'skill' | 'notification'
+  target_id?: string
+  params?: Record<string, unknown>
+}
 
 interface SchedulerJob {
   id: string
   name: string
   cron: string
-  action: string
+  action: JobAction | string
   enabled: boolean
   created_at: string
   last_run?: string
@@ -133,5 +140,92 @@ export class SchedulerService extends ServiceBase {
       action: job.action,
       timestamp: job.last_run,
     })
+    
+    this.executeJobAction(job).catch(err => {
+      console.error(`[SchedulerService] executeJobAction error:`, err)
+      job.last_status = 'failed'
+    })
+  }
+
+  private parseAction(action: JobAction | string): JobAction | null {
+    if (typeof action === 'string') {
+      if (action.startsWith('agent:')) {
+        return { type: 'agent', target_id: action.substring(6) }
+      }
+      if (action.startsWith('workflow:')) {
+        return { type: 'workflow', target_id: action.substring(9) }
+      }
+      if (action.startsWith('skill:')) {
+        return { type: 'skill', target_id: action.substring(6) }
+      }
+      return { type: 'notification', params: { message: action } }
+    }
+    return action
+  }
+
+  private async executeJobAction(job: SchedulerJob): Promise<void> {
+    const action = this.parseAction(job.action)
+    if (!action) {
+      console.warn(`[SchedulerService] No valid action for job: ${job.name}`)
+      return
+    }
+
+    try {
+      switch (action.type) {
+        case 'agent':
+          await this.executeAgentAction(action)
+          break
+        case 'workflow':
+          await this.executeWorkflowAction(action)
+          break
+        case 'skill':
+          await this.executeSkillAction(action)
+          break
+        case 'notification':
+          await this.executeNotificationAction(action)
+          break
+        default:
+          console.warn(`[SchedulerService] Unknown action type: ${action.type}`)
+      }
+      job.last_status = 'success'
+    } catch (err) {
+      console.error(`[SchedulerService] Action execution failed for job ${job.name}:`, err)
+      job.last_status = 'failed'
+    }
+  }
+
+  private async executeAgentAction(action: JobAction): Promise<void> {
+    const registry = ServiceRegistry.getInstance()
+    const agentService = registry.get('agents')
+    if (agentService) {
+      const task = (action.params?.task as string) || 'Scheduled task'
+      const mode = (action.params?.mode as string) || 'chat'
+      await (agentService as any).dispatch(task, mode)
+    }
+  }
+
+  private async executeWorkflowAction(action: JobAction): Promise<void> {
+    const registry = ServiceRegistry.getInstance()
+    const workflowService = registry.get('workflows')
+    if (workflowService && action.target_id) {
+      await (workflowService as any).run(action.target_id)
+    }
+  }
+
+  private async executeSkillAction(action: JobAction): Promise<void> {
+    const registry = ServiceRegistry.getInstance()
+    const skillService = registry.get('skills')
+    if (skillService && action.target_id) {
+      await (skillService as any).call(action.target_id, action.params)
+    }
+  }
+
+  private async executeNotificationAction(action: JobAction): Promise<void> {
+    const registry = ServiceRegistry.getInstance()
+    const voiceService = registry.get('voice')
+    const message = (action.params?.message as string) || 'Scheduled notification'
+    if (voiceService) {
+      await (voiceService as any).speak(message)
+    }
   }
 }

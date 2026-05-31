@@ -1,4 +1,4 @@
-import { execSync } from 'child_process'
+import { exec } from 'child_process'
 import { ServiceBase } from './ServiceBase'
 import type { GPUInfo, GPUChip } from './types'
 
@@ -50,6 +50,18 @@ function computeWarnings(gpus: GPUChip[]): string[] {
   return warnings
 }
 
+function execAsync(command: string, timeout: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    exec(command, { encoding: 'utf-8', timeout }, (error, stdout) => {
+      if (error) {
+        reject(error)
+        return
+      }
+      resolve(stdout.trim())
+    })
+  })
+}
+
 export class GPUService extends ServiceBase {
   constructor() {
     super({
@@ -67,9 +79,9 @@ export class GPUService extends ServiceBase {
     this.ready = false
   }
 
-  queryStatus(): GPUInfo {
+  async queryStatus(): Promise<GPUInfo> {
     try {
-      return this.queryNvidiaSmi()
+      return await this.queryNvidiaSmi()
     } catch (e) {
       return {
         available: false,
@@ -85,13 +97,10 @@ export class GPUService extends ServiceBase {
     }
   }
 
-  private queryNvidiaSmi(): GPUInfo {
+  private async queryNvidiaSmi(): Promise<GPUInfo> {
     let raw: string
     try {
-      raw = execSync(SMI_QUERY, {
-        encoding: 'utf-8',
-        timeout: 8000,
-      }).trim()
+      raw = await execAsync(SMI_QUERY, 8000)
     } catch (e) {
       if (e instanceof Error && e.message.includes('command not found')) {
         throw e

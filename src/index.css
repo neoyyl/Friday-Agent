@@ -77,16 +77,150 @@
 }
 
 [data-theme="sand"] {
-  --bg0: #f2ede3; --bg1: #eae2d2; --bg-deep: #ddd2bc;
-  --ink: #2a231a; --ink2: #6a5c48; --dim: #9e917c;
-  --line: rgba(70, 55, 35, 0.08); --line-strong: rgba(70, 55, 35, 0.20);
-  --panel: rgba(250, 246, 238, 0.54); --console-bg: rgba(250, 246, 238, 0.46);
-  --cool: #7a5a2c; --warm: #c8502e;
-  --node-low: #cdbfa6; --node-high: #3a2a16;
+  --bg0: #f2ede3;
+  --bg1: #eae2d2;
+  --bg-deep: #ddd2bc;
+  --ink: #2a231a;
+  --ink2: #6a5c48;
+  --dim: #9e917c;
+  --line: rgba(70, 55, 35, 0.08);
+  --line-strong: rgba(70, 55, 35, 0.20);
+  --panel: rgba(250, 246, 238, 0.54);
+  --console-bg: rgba(250, 246, 238, 0.46);
+  --cool: #7a5a2c;
+  --warm: #c8502e;
+  --node-low: #cdbfa6;
+  --node-high: #3a2a16;
   --glow-halo: rgba(122, 90, 44, 0.06);
   --glow-tint1: rgba(122, 90, 44, 0.06);
   --glow-tint2: rgba(200, 80, 46, 0.05);
   --link-stroke: rgba(70, 55, 35, 0.18);
+}
+
+[data-theme="cyberpunk"] {
+  --bg0: #0d0a0f;
+  --bg1: #151118;
+  --bg-deep: #070508;
+  --ink: #ff00ff;
+  --ink2: #00ffff;
+  --dim: #4a3a52;
+  --line: rgba(255, 0, 255, 0.10);
+  --line-strong: rgba(255, 0, 255, 0.25);
+  --panel: rgba(13, 10, 15, 0.60);
+  --console-bg: rgba(21, 17, 24, 0.50);
+  --cool: #00ffff;
+  --warm: #ff00ff;
+  --node-low: #3a2a42;
+  --node-high: #ff00ff;
+  --glow-halo: rgba(255, 0, 255, 0.15);
+  --glow-tint1: rgba(0, 255, 255, 0.10);
+  --glow-tint2: rgba(255, 0, 255, 0.08);
+  --link-stroke: rgba(0, 255, 255, 0.25);
+}
+
+[data-theme="stardust"] {
+  --bg0: #0a0814;
+  --bg1: #121025;
+  --bg-deep: #05040a;
+  --ink: #e8e0ff;
+  --ink2: #a8a0d0;
+  --dim: #5a5078;
+  --line: rgba(180, 160, 255, 0.10);
+  --line-strong: rgba(180, 160, 255, 0.22);
+  --panel: rgba(10, 8, 20, 0.56);
+  --console-bg: rgba(18, 16, 37, 0.48);
+  --cool: #b4a0ff;
+  --warm: #ffc0a0;
+  --node-low: #3a3058;
+  --node-high: #e8e0ff;
+  --glow-halo: rgba(180, 160, 255, 0.12);
+  --glow-tint1: rgba(180, 160, 255, 0.08);
+  --glow-tint2: rgba(255, 192, 160, 0.06);
+  --link-stroke: rgba(180, 160, 255, 0.20);
+}
+
+[data-theme="matcha"] {
+  --bg0: #e8efe0;
+  --bg1: #d8e6c8;
+  --bg-deep: #c8dab8;
+  --ink: #3a4a2a;
+  --ink2: #5a6a4a;
+  --dim: #7a8a6a;
+  --line: rgba(60, 80, 40, 0.08);
+  --line-strong: rgba(60, 80, 40, 0.20);
+  --panel: rgba(232, 239, 224, 0.54);
+  --console-bg: rgba(216, 230, 200, 0.48);
+  --cool: #6a8a4a;
+  --warm: #aa7a5a;
+  --node-low: #b8c8a8;
+  --node-high: #3a4a2a;
+  --glow-halo: rgba(106, 138, 74, 0.08);
+  --glow-tint1: rgba(106, 138, 74, 0.06);
+  --glow-tint2: rgba(170, 122, 90, 0.05);
+  --link-stroke: rgba(60, 80, 40, 0.18);
+}
+
+[data-theme="sakura"] {
+  --bg0: #fde8ef;
+  --bg1: #fae0e8;
+  --bg-deep: #f6d0dc;
+  --ink: #8a3a5a;
+  --ink2: #aa5a7a;
+  --dim: #ca8a9a;
+  --line: rgba(150, 60, 90, 0.08);
+  --line-strong: rgba(150, 60, 90, 0.20);
+  --panel: rgba(253, 232, 239, 0.54);
+  --console-bg: rgba(250, 224, 232, 0.48);
+  --cool: #aa6a8a;
+  --warm: #ea9aaa;
+  --node-low: #e8c8d0;
+  --node-high: #8a3a5a;
+  --glow-halo: rgba(170, 106, 138, 0.08);
+  --glow-tint1: rgba(170, 106, 138, 0.06);
+  --glow-tint2: rgba(234, 154, 170, 0.05);
+  --link-stroke: rgba(150, 60, 90, 0.18);
+}
+
+[data-theme="aurora"] {
+  --bg0: #0a1410;
+  --bg1: #102018;
+  --bg-deep: #050a08;
+  --ink: #c0ffe0;
+  --ink2: #70d0a0;
+  --dim: #408060;
+  --line: rgba(100, 200, 150, 0.10);
+  --line-strong: rgba(100, 200, 150, 0.25);
+  --panel: rgba(10, 20, 16, 0.58);
+  --console-bg: rgba(16, 32, 24, 0.48);
+  --cool: #50e0a0;
+  --warm: #a0e050;
+  --node-low: #2a4a3a;
+  --node-high: #c0ffe0;
+  --glow-halo: rgba(80, 224, 160, 0.15);
+  --glow-tint1: rgba(80, 224, 160, 0.10);
+  --glow-tint2: rgba(160, 224, 80, 0.08);
+  --link-stroke: rgba(100, 200, 150, 0.25);
+}
+
+[data-theme="deepsea"] {
+  --bg0: #051018;
+  --bg1: #0a1828;
+  --bg-deep: #030810;
+  --ink: #90d0f0;
+  --ink2: #5090c0;
+  --dim: #306088;
+  --line: rgba(80, 150, 200, 0.10);
+  --line-strong: rgba(80, 150, 200, 0.22);
+  --panel: rgba(5, 16, 24, 0.58);
+  --console-bg: rgba(10, 24, 40, 0.48);
+  --cool: #40b0e0;
+  --warm: #e0a040;
+  --node-low: #1a3a52;
+  --node-high: #90d0f0;
+  --glow-halo: rgba(64, 176, 224, 0.12);
+  --glow-tint1: rgba(64, 176, 224, 0.08);
+  --glow-tint2: rgba(224, 160, 64, 0.06);
+  --link-stroke: rgba(80, 150, 200, 0.20);
 }
 
 /* ── 基础重置 ── */
@@ -1131,9 +1265,11 @@ body {
   overflow: visible;
 }
 
-.memory-graph svg {
+.memory-graph svg,
+.memory-graph canvas {
   width: 100%;
   height: 100%;
+  display: block;
 }
 
 .graph-placeholder {

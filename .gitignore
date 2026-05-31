@@ -14,8 +14,16 @@ dist-ssr
 release
 *.local
 
-# Friday Kernel — tracked individually
-# (see Friday_Kernel/.gitignore for exclusions)
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Coverage
+coverage/
+
+# Local models (too large for git)
+local_models/
 
 # Editor directories and files
 .vscode/*

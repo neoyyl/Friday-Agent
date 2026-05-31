@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react'
 import { useThemeStore, ThemeName } from '../../../stores/themeStore'
-import { useLanguageStore } from '../../../stores/languageStore'
+import { useTranslation } from '../../../stores/languageStore'
 import { useSettingsStore } from '../../../stores/settingsStore'
 
-const THEMES: { id: ThemeName; name: string; colors: string[] }[] = [
-  { id: 'midnight', name: '午夜星云', colors: ['#0f1822', '#8fb6d8', '#d39872'] },
-  { id: 'phosphor', name: '荧光绿', colors: ['#0a120c', '#9fe09a', '#f0c866'] },
-  { id: 'violet', name: '紫色星云', colors: ['#161128', '#b098f0', '#78e0c8'] },
-  { id: 'rose', name: '玫瑰暖色', colors: ['#24151f', '#e89aa8', '#f2c27a'] },
-  { id: 'arctic', name: '极地白色', colors: ['#eaeef2', '#3a6a8f', '#b85a3a'] },
-  { id: 'sand', name: '沙漠暖黄', colors: ['#eae2d2', '#7a5a2c', '#c8502e'] }
+const THEMES: { id: ThemeName; nameKey: string; colors: string[] }[] = [
+  { id: 'midnight', nameKey: 'THEME_MIDNIGHT', colors: ['#0f1822', '#8fb6d8', '#d39872'] },
+  { id: 'phosphor', nameKey: 'THEME_PHOSPHOR', colors: ['#0a120c', '#9fe09a', '#f0c866'] },
+  { id: 'violet', nameKey: 'THEME_VIOLET', colors: ['#161128', '#b098f0', '#78e0c8'] },
+  { id: 'rose', nameKey: 'THEME_ROSE', colors: ['#24151f', '#e89aa8', '#f2c27a'] },
+  { id: 'arctic', nameKey: 'THEME_ARCTIC', colors: ['#eaeef2', '#3a6a8f', '#b85a3a'] },
+  { id: 'sand', nameKey: 'THEME_SAND', colors: ['#eae2d2', '#7a5a2c', '#c8502e'] },
+  { id: 'cyberpunk', nameKey: 'THEME_CYBERPUNK', colors: ['#0d0a0f', '#00ffff', '#ff00ff'] },
+  { id: 'stardust', nameKey: 'THEME_STARDUST', colors: ['#121025', '#b4a0ff', '#ffc0a0'] },
+  { id: 'matcha', nameKey: 'THEME_MATCHA', colors: ['#d8e6c8', '#6a8a4a', '#aa7a5a'] },
+  { id: 'sakura', nameKey: 'THEME_SAKURA', colors: ['#fae0e8', '#aa6a8a', '#ea9aaa'] },
+  { id: 'aurora', nameKey: 'THEME_AURORA', colors: ['#102018', '#50e0a0', '#a0e050'] },
+  { id: 'deepsea', nameKey: 'THEME_DEEPSEA', colors: ['#0a1828', '#40b0e0', '#e0a040'] }
 ]
 
 const PROVIDERS = [
@@ -27,7 +33,7 @@ type TabId = 'llm' | 'voice' | 'tts' | 'appearance' | 'graph' | 'system' | 'abou
 
 export function ThemeSwitcher() {
   const { currentTheme, setTheme } = useThemeStore()
-  const { language, setLanguage, t } = useLanguageStore()
+  const { language, setLanguage, t } = useTranslation()
   const [showSettings, setShowSettings] = useState(false)
   const [activeTab, setActiveTab] = useState<TabId>('llm')
 
@@ -52,7 +58,7 @@ export function ThemeSwitcher() {
     if (st.voiceThreshold) setVoiceThreshold(parseFloat(st.voiceThreshold))
     if (st.ttsProvider) setTtsProvider(st.ttsProvider)
     if (st.ttsVoice) setTtsVoice(st.ttsVoice)
-    if (st.showGraph !== undefined) setShowGraph(st.showGraph)
+    if (st.displayMode) setDisplayMode(st.displayMode)
     if (st.sandboxEnabled !== undefined) setSandboxEnabled(st.sandboxEnabled)
   }, [])
 
@@ -65,8 +71,8 @@ export function ThemeSwitcher() {
   const [ttsProvider, setTtsProvider] = useState('openai')
   const [ttsVoice, setTtsVoice] = useState('alloy')
 
-  // Graph Settings
-  const [showGraph, setShowGraph] = useState(true)
+  // Display Mode Settings
+  const [displayMode, setDisplayMode] = useState<'graph' | 'cloud' | 'none'>('cloud')
 
   // Sandbox Settings
   const [sandboxEnabled, setSandboxEnabled] = useState(true)
@@ -75,9 +81,9 @@ export function ThemeSwitcher() {
   const [feedback, setFeedback] = useState('')
 
   useEffect(() => {
-    useSettingsStore.getState().saveSettings({ showGraph })
-    window.dispatchEvent(new CustomEvent('graph-toggle', { detail: { show: showGraph } }))
-  }, [showGraph])
+    useSettingsStore.getState().saveSettings({ displayMode })
+    window.dispatchEvent(new CustomEvent('display-mode-change', { detail: { mode: displayMode } }))
+  }, [displayMode])
 
   useEffect(() => {
     useSettingsStore.getState().saveSettings({ sandboxEnabled })
@@ -386,7 +392,7 @@ export function ThemeSwitcher() {
                   <div key={i} className="theme-color-modern" style={{ backgroundColor: color }} />
                 ))}
               </div>
-              <div className="theme-name-modern">{theme.name}</div>
+              <div className="theme-name-modern">{t(theme.nameKey as any)}</div>
               {currentTheme === theme.id && <div className="theme-check-mark">✓</div>}
             </div>
           ))}
@@ -399,22 +405,34 @@ export function ThemeSwitcher() {
     <div className="settings-tab-content">
       <div className="settings-card">
         <div className="settings-card-header">
-          <div className="settings-card-icon">🧠</div>
+          <div className="settings-card-icon">✨</div>
           <div className="settings-card-title">{t('MEMORY_GRAPH')}</div>
         </div>
-        <div className="settings-toggle-card">
-          <div className="settings-toggle-info">
-            <div className="settings-toggle-title">{t('SHOW_GRAPH')}</div>
-            <div className="settings-toggle-desc">{t('GRAPH_HINT')}</div>
+        <div className="display-mode-grid">
+          <div
+            className={`mode-card ${displayMode === 'none' ? 'active' : ''}`}
+            onClick={() => setDisplayMode('none')}
+          >
+            <div className="mode-icon">🙈</div>
+            <div className="mode-name">{t('HIDE_DISPLAY')}</div>
+            {displayMode === 'none' && <div className="mode-check">✓</div>}
           </div>
-          <label className="switch-modern">
-            <input
-              type="checkbox"
-              checked={showGraph}
-              onChange={(e) => setShowGraph(e.target.checked)}
-            />
-            <span className="slider-modern"></span>
-          </label>
+          <div
+            className={`mode-card ${displayMode === 'graph' ? 'active' : ''}`}
+            onClick={() => setDisplayMode('graph')}
+          >
+            <div className="mode-icon">🧠</div>
+            <div className="mode-name">{t('GRAPH_MODE')}</div>
+            {displayMode === 'graph' && <div className="mode-check">✓</div>}
+          </div>
+          <div
+            className={`mode-card ${displayMode === 'cloud' ? 'active' : ''}`}
+            onClick={() => setDisplayMode('cloud')}
+          >
+            <div className="mode-icon">🌌</div>
+            <div className="mode-name">{t('CLOUD_MODE')}</div>
+            {displayMode === 'cloud' && <div className="mode-check">✓</div>}
+          </div>
         </div>
       </div>
     </div>
@@ -451,8 +469,8 @@ export function ThemeSwitcher() {
       <div className="settings-card">
         <div className="settings-toggle-card">
           <div className="settings-toggle-info">
-            <div className="settings-toggle-title">安全沙箱</div>
-            <div className="settings-toggle-desc">启用后，文件操作和命令执行将受到安全限制</div>
+            <div className="settings-toggle-title">{t('SANDBOX')}</div>
+            <div className="settings-toggle-desc">{t('SANDBOX_DESC')}</div>
           </div>
           <label className="switch-modern">
             <input
@@ -953,14 +971,14 @@ export function ThemeSwitcher() {
 
         .theme-grid-modern {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 10px;
         }
 
         .theme-card-modern {
-          padding: 14px;
+          padding: 12px;
           border: 2px solid var(--line);
-          border-radius: 14px;
+          border-radius: 12px;
           cursor: pointer;
           transition: all 0.2s ease;
           background: var(--bg1);
@@ -1153,6 +1171,67 @@ export function ThemeSwitcher() {
 
         .link-icon {
           font-size: 14px;
+        }
+
+        .display-mode-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+        }
+
+        .mode-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 16px 12px;
+          border: 2px solid var(--line);
+          border-radius: 14px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          background: var(--bg1);
+          position: relative;
+        }
+
+        .mode-card:hover {
+          border-color: color-mix(in srgb, var(--cool) 40%, var(--line));
+          transform: translateY(-3px);
+        }
+
+        .mode-card.active {
+          border-color: var(--warm);
+          background: linear-gradient(135deg, color-mix(in srgb, var(--warm) 15%, var(--bg1)), color-mix(in srgb, var(--cool) 8%, var(--bg1)));
+        }
+
+        .mode-icon {
+          font-size: 28px;
+          margin-bottom: 8px;
+        }
+
+        .mode-name {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--ink2);
+          text-align: center;
+        }
+
+        .mode-card.active .mode-name {
+          color: var(--warm);
+        }
+
+        .mode-check {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          width: 20px;
+          height: 20px;
+          background: var(--warm);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--bg0);
+          font-size: 12px;
+          font-weight: 900;
         }
 
         .settings-feedback-modern {

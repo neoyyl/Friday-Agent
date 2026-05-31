@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSettingsStore } from '../../../stores/settingsStore'
+import { useTranslation } from '../../../stores/languageStore'
 
 interface UpdateStatus {
   status: string
@@ -8,11 +9,28 @@ interface UpdateStatus {
   error?: string
 }
 
+const SETTING_ITEMS = [
+  { section: 'API配置', key: 'apiKey', label: 'API Key', desc: '你的 AI 提供商 API Key' },
+  { section: 'API配置', key: 'provider', label: 'Provider', desc: '选择你的 AI 提供商' },
+  { section: 'API配置', key: 'model', label: 'Model', desc: '选择使用的模型' },
+  { section: 'API配置', key: 'temperature', label: 'Temperature', desc: '采样温度 (0-2)' },
+  { section: 'API配置', key: 'maxTokens', label: 'Max Tokens', desc: '最大输出 Token 数' },
+  { section: '主题设置', key: 'theme', label: 'Theme', desc: '选择主题模式' },
+  { section: '主题设置', key: 'showGraph', label: 'Show Memory Graph', desc: '显示记忆图谱' },
+  { section: '语音设置', key: 'voiceLang', label: 'Voice Language', desc: '语音识别和合成的语言' },
+  { section: '语音设置', key: 'voiceAutoSend', label: 'Voice Auto Send', desc: '语音识别后自动发送消息' },
+  { section: '语音设置', key: 'ttsProvider', label: 'TTS Provider', desc: '语音合成提供商' },
+  { section: '语音设置', key: 'ttsVoice', label: 'TTS Voice', desc: '语音合成音色' },
+  { section: '安全设置', key: 'sandboxEnabled', label: '安全沙箱', desc: '启用后，文件操作和命令执行将受到安全限制' },
+]
+
 export function SettingsPanel() {
   const { settings, saveSettings, loadSettings } = useSettingsStore()
+  const { t } = useTranslation()
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null)
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false)
   const [localSettings, setLocalSettings] = useState(settings)
+  const [searchQuery, setSearchQuery] = useState('')
 
   // 加载设置
   useEffect(() => {
@@ -41,9 +59,13 @@ export function SettingsPanel() {
   }, [])
 
   // 更新单个设置
-  const handleSettingChange = (key: keyof typeof settings, value: any) => {
+  const handleSettingChange = async (key: keyof typeof settings, value: any) => {
     const newSettings = { ...localSettings, [key]: value }
     setLocalSettings(newSettings)
+    // 对于布尔开关，立即保存以确保即时生效
+    if (key === 'showGraph' || key === 'sandboxEnabled' || key === 'voiceAutoSend') {
+      await saveSettings(newSettings)
+    }
   }
 
   // 保存所有更改
@@ -71,23 +93,23 @@ export function SettingsPanel() {
 
   // 获取更新状态文本
   const getUpdateStatusText = () => {
-    if (!updateStatus) return '检查更新'
+    if (!updateStatus) return t('CHECK_UPDATE')
 
     switch (updateStatus.status) {
       case 'checking':
-        return '检查中...'
+        return t('CHECKING')
       case 'available':
-        return `发现新版本 v${updateStatus.version}`
+        return `${t('NEW_VERSION')} v${updateStatus.version}`
       case 'not-available':
-        return '已是最新版本'
+        return t('LATEST_VERSION')
       case 'downloading':
-        return `下载中 ${Math.round(updateStatus.percent || 0)}%`
+        return `${t('DOWNLOADING')} ${Math.round(updateStatus.percent || 0)}%`
       case 'downloaded':
-        return `已下载 v${updateStatus.version}，点击安装`
+        return `${t('DOWNLOADED')} v${updateStatus.version}，${t('CLICK_INSTALL')}`
       case 'error':
-        return `更新失败: ${updateStatus.error}`
+        return `${t('UPDATE_FAILED')}: ${updateStatus.error}`
       default:
-        return '检查更新'
+        return t('CHECK_UPDATE')
     }
   }
 
@@ -97,230 +119,182 @@ export function SettingsPanel() {
   const providers = ['openai', 'anthropic', 'deepseek', 'openrouter']
   const themes = ['light', 'dark', 'system']
 
+  const q = searchQuery.toLowerCase().trim()
+  const sectionMatches = SETTING_ITEMS.reduce<Record<string, Array<typeof SETTING_ITEMS[number]>>>((acc, item) => {
+    if (!q || item.label.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q)) {
+      (acc[item.section] ||= []).push(item)
+    }
+    return acc
+  }, {})
+  const matchCount = Object.values(sectionMatches).reduce((s, items) => s + items.length, 0)
+
   return (
     <div className="settings-panel">
-      <h3 className="settings-title">设置</h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+        <h3 className="settings-title" style={{ margin: 0 }}>设置</h3>
+      </div>
 
-      {/* API 配置 */}
-      <div className="settings-section">
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">API Key</div>
-            <div className="setting-description">
-              你的 AI 提供商 API Key
-            </div>
-          </div>
-        </div>
+      {/* Search */}
+      <div style={{ marginBottom: '12px' }}>
         <input
-          type="password"
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="搜索设置项..."
           className="setting-input"
-          value={localSettings.apiKey}
-          onChange={(e) => handleSettingChange('apiKey', e.target.value)}
-          placeholder="sk-..."
         />
-
-        <div className="setting-item" style={{ marginTop: '12px' }}>
-          <div className="setting-info">
-            <div className="setting-label">Provider</div>
-            <div className="setting-description">
-              选择你的 AI 提供商
-            </div>
+        {searchQuery.trim() && (
+          <div style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: '4px' }}>
+            匹配 {matchCount} 项设置
           </div>
-          <select
-            className="setting-select"
-            value={localSettings.provider}
-            onChange={(e) => handleSettingChange('provider', e.target.value)}
-          >
-            {providers.map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="setting-item" style={{ marginTop: '12px' }}>
-          <div className="setting-info">
-            <div className="setting-label">Model</div>
-            <div className="setting-description">
-              选择使用的模型
-            </div>
-          </div>
-          <input
-            type="text"
-            className="setting-input"
-            value={localSettings.model}
-            onChange={(e) => handleSettingChange('model', e.target.value)}
-            placeholder="gpt-4o"
-          />
-        </div>
-
-        <div className="setting-item" style={{ marginTop: '12px' }}>
-          <div className="setting-info">
-            <div className="setting-label">Temperature</div>
-            <div className="setting-description">
-              采样温度 (0-2)
-            </div>
-          </div>
-          <input
-            type="number"
-            className="setting-input"
-            value={localSettings.temperature}
-            onChange={(e) => handleSettingChange('temperature', e.target.value)}
-            min="0"
-            max="2"
-            step="0.1"
-          />
-        </div>
-
-        <div className="setting-item" style={{ marginTop: '12px' }}>
-          <div className="setting-info">
-            <div className="setting-label">Max Tokens</div>
-            <div className="setting-description">
-              最大输出 Token 数
-            </div>
-          </div>
-          <input
-            type="number"
-            className="setting-input"
-            value={localSettings.maxTokens}
-            onChange={(e) => handleSettingChange('maxTokens', e.target.value)}
-            min="1"
-            max="128000"
-          />
-        </div>
+        )}
       </div>
 
-      {/* 主题设置 */}
-      <div className="settings-section">
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Theme</div>
-            <div className="setting-description">
-              选择主题模式
-            </div>
-          </div>
-          <select
-            className="setting-select"
-            value={localSettings.theme}
-            onChange={(e) => handleSettingChange('theme', e.target.value as 'light' | 'dark' | 'system')}
-          >
-            {themes.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-        </div>
+      {/* Sections */}
+      {['API配置', '主题设置', '语音设置', '安全设置'].map(sectionName => {
+        const visibleItems = sectionMatches[sectionName]
+        if (searchQuery.trim() && !visibleItems) return null
 
-        <div className="setting-item" style={{ marginTop: '12px' }}>
-          <div className="setting-info">
-            <div className="setting-label">Show Memory Graph</div>
-            <div className="setting-description">
-              显示记忆图谱
-            </div>
-          </div>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={localSettings.showGraph}
-              onChange={(e) => handleSettingChange('showGraph', e.target.checked)}
-            />
-            <span className="slider round"></span>
-          </label>
-        </div>
-      </div>
+        return (
+          <div key={sectionName} className="settings-section">
+            {(!searchQuery.trim() || visibleItems?.length !== SETTING_ITEMS.filter(i => i.section === sectionName).length) && (
+              <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-dim)', marginBottom: '8px', letterSpacing: '0.04em' }}>
+                {sectionName}
+                {visibleItems && ` (${visibleItems.length})`}
+              </div>
+            )}
 
-      {/* 语音设置 */}
-      <div className="settings-section">
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">Voice Language</div>
-            <div className="setting-description">
-              语音识别和合成的语言
-            </div>
-          </div>
-          <select
-            className="setting-select"
-            value={localSettings.voiceLang}
-            onChange={(e) => handleSettingChange('voiceLang', e.target.value)}
-          >
-            <option value="zh-CN">中文 (zh-CN)</option>
-            <option value="en-US">English (en-US)</option>
-          </select>
-        </div>
+            {sectionName === 'API配置' && <>
+              <div className="setting-item" style={{ display: (!q || 'api key'.includes(q) || '你的 ai 提供商 api key'.includes(q)) ? undefined : 'none' }}>
+                <div className="setting-info">
+                  <div className="setting-label">API Key</div>
+                  <div className="setting-description">你的 AI 提供商 API Key</div>
+                </div>
+              </div>
+              <input
+                type="password"
+                className="setting-input"
+                value={localSettings.apiKey}
+                onChange={(e) => handleSettingChange('apiKey', e.target.value)}
+                placeholder="sk-..."
+                style={{ display: (!q || 'api key'.includes(q) || '你的 ai 提供商 api key'.includes(q)) ? undefined : 'none' }}
+              />
+              <div className="setting-item" style={{ marginTop: '12px', display: (!q || 'provider'.includes(q) || '选择你的 ai 提供商'.includes(q)) ? undefined : 'none' }}>
+                <div className="setting-info">
+                  <div className="setting-label">Provider</div>
+                  <div className="setting-description">选择你的 AI 提供商</div>
+                </div>
+                <select className="setting-select" value={localSettings.provider} onChange={(e) => handleSettingChange('provider', e.target.value)}>
+                  {providers.map((p) => (<option key={p} value={p}>{p}</option>))}
+                </select>
+              </div>
+              <div className="setting-item" style={{ marginTop: '12px', display: (!q || 'model'.includes(q) || '选择使用的模型'.includes(q)) ? undefined : 'none' }}>
+                <div className="setting-info">
+                  <div className="setting-label">Model</div>
+                  <div className="setting-description">选择使用的模型</div>
+                </div>
+                <input type="text" className="setting-input" value={localSettings.model} onChange={(e) => handleSettingChange('model', e.target.value)} placeholder="gpt-4o" />
+              </div>
+              <div className="setting-item" style={{ marginTop: '12px', display: (!q || 'temperature'.includes(q) || '采样温度'.includes(q)) ? undefined : 'none' }}>
+                <div className="setting-info">
+                  <div className="setting-label">Temperature</div>
+                  <div className="setting-description">采样温度 (0-2)</div>
+                </div>
+                <input type="number" className="setting-input" value={localSettings.temperature} onChange={(e) => handleSettingChange('temperature', e.target.value)} min="0" max="2" step="0.1" />
+              </div>
+              <div className="setting-item" style={{ marginTop: '12px', display: (!q || 'max tokens'.includes(q) || '最大输出 token 数'.includes(q)) ? undefined : 'none' }}>
+                <div className="setting-info">
+                  <div className="setting-label">Max Tokens</div>
+                  <div className="setting-description">最大输出 Token 数</div>
+                </div>
+                <input type="number" className="setting-input" value={localSettings.maxTokens} onChange={(e) => handleSettingChange('maxTokens', e.target.value)} min="1" max="128000" />
+              </div>
+            </>}
 
-        <div className="setting-item" style={{ marginTop: '12px' }}>
-          <div className="setting-info">
-            <div className="setting-label">Voice Auto Send</div>
-            <div className="setting-description">
-              语音识别后自动发送消息
-            </div>
-          </div>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={localSettings.voiceAutoSend}
-              onChange={(e) => handleSettingChange('voiceAutoSend', e.target.checked)}
-            />
-            <span className="slider round"></span>
-          </label>
-        </div>
+            {sectionName === '主题设置' && <>
+              <div className="setting-item" style={{ display: (!q || 'theme'.includes(q) || '选择主题模式'.includes(q)) ? undefined : 'none' }}>
+                <div className="setting-info">
+                  <div className="setting-label">Theme</div>
+                  <div className="setting-description">选择主题模式</div>
+                </div>
+                <select className="setting-select" value={localSettings.theme} onChange={(e) => handleSettingChange('theme', e.target.value as 'light' | 'dark' | 'system')}>
+                  {themes.map((t) => (<option key={t} value={t}>{t}</option>))}
+                </select>
+              </div>
+              <div className="setting-item" style={{ marginTop: '12px', display: (!q || 'show memory graph'.includes(q) || '显示记忆图谱'.includes(q)) ? undefined : 'none' }}>
+                <div className="setting-info">
+                  <div className="setting-label">Show Memory Graph</div>
+                  <div className="setting-description">显示记忆图谱</div>
+                </div>
+                <label className="switch">
+                  <input type="checkbox" checked={localSettings.showGraph} onChange={(e) => handleSettingChange('showGraph', e.target.checked)} />
+                  <span className="slider round"></span>
+                </label>
+              </div>
+            </>}
 
-        <div className="setting-item" style={{ marginTop: '12px' }}>
-          <div className="setting-info">
-            <div className="setting-label">TTS Provider</div>
-            <div className="setting-description">
-              语音合成提供商
-            </div>
-          </div>
-          <select
-            className="setting-select"
-            value={localSettings.ttsProvider}
-            onChange={(e) => handleSettingChange('ttsProvider', e.target.value)}
-          >
-            <option value="native">系统原生</option>
-            <option value="openai">OpenAI TTS</option>
-          </select>
-        </div>
+            {sectionName === '语音设置' && <>
+              <div className="setting-item" style={{ display: (!q || 'voice language'.includes(q) || '语音识别'.includes(q)) ? undefined : 'none' }}>
+                <div className="setting-info">
+                  <div className="setting-label">Voice Language</div>
+                  <div className="setting-description">语音识别和合成的语言</div>
+                </div>
+                <select className="setting-select" value={localSettings.voiceLang} onChange={(e) => handleSettingChange('voiceLang', e.target.value)}>
+                  <option value="zh-CN">中文 (zh-CN)</option>
+                  <option value="en-US">English (en-US)</option>
+                </select>
+              </div>
+              <div className="setting-item" style={{ marginTop: '12px', display: (!q || 'voice auto send'.includes(q) || '语音识别后自动发送'.includes(q)) ? undefined : 'none' }}>
+                <div className="setting-info">
+                  <div className="setting-label">Voice Auto Send</div>
+                  <div className="setting-description">语音识别后自动发送消息</div>
+                </div>
+                <label className="switch">
+                  <input type="checkbox" checked={localSettings.voiceAutoSend} onChange={(e) => handleSettingChange('voiceAutoSend', e.target.checked)} />
+                  <span className="slider round"></span>
+                </label>
+              </div>
+              <div className="setting-item" style={{ marginTop: '12px', display: (!q || 'tts provider'.includes(q) || '语音合成提供商'.includes(q)) ? undefined : 'none' }}>
+                <div className="setting-info">
+                  <div className="setting-label">TTS Provider</div>
+                  <div className="setting-description">语音合成提供商</div>
+                </div>
+                <select className="setting-select" value={localSettings.ttsProvider} onChange={(e) => handleSettingChange('ttsProvider', e.target.value)}>
+                  <option value="native">系统原生</option>
+                  <option value="openai">OpenAI TTS</option>
+                </select>
+              </div>
+              <div className="setting-item" style={{ marginTop: '12px', display: (!q || 'tts voice'.includes(q) || '语音合成音色'.includes(q)) ? undefined : 'none' }}>
+                <div className="setting-info">
+                  <div className="setting-label">TTS Voice</div>
+                  <div className="setting-description">语音合成音色</div>
+                </div>
+                <select className="setting-select" value={localSettings.ttsVoice} onChange={(e) => handleSettingChange('ttsVoice', e.target.value)}>
+                  <option value="alloy">alloy</option>
+                  <option value="echo">echo</option>
+                  <option value="fable">fable</option>
+                  <option value="onyx">onyx</option>
+                  <option value="nova">nova</option>
+                  <option value="shimmer">shimmer</option>
+                </select>
+              </div>
+            </>}
 
-        <div className="setting-item" style={{ marginTop: '12px' }}>
-          <div className="setting-info">
-            <div className="setting-label">TTS Voice</div>
-            <div className="setting-description">
-              语音合成音色
-            </div>
+            {sectionName === '安全设置' && <>
+              <div className="setting-item" style={{ display: (!q || '安全沙箱'.includes(q) || '文件操作和命令执行'.includes(q)) ? undefined : 'none' }}>
+                <div className="setting-info">
+                  <div className="setting-label">安全沙箱</div>
+                  <div className="setting-description">启用后，文件操作和命令执行将受到安全限制</div>
+                </div>
+                <label className="switch">
+                  <input type="checkbox" checked={localSettings.sandboxEnabled} onChange={(e) => handleSettingChange('sandboxEnabled', e.target.checked)} />
+                  <span className="slider round"></span>
+                </label>
+              </div>
+            </>}
           </div>
-          <select
-            className="setting-select"
-            value={localSettings.ttsVoice}
-            onChange={(e) => handleSettingChange('ttsVoice', e.target.value)}
-          >
-            <option value="alloy">alloy</option>
-            <option value="echo">echo</option>
-            <option value="fable">fable</option>
-            <option value="onyx">onyx</option>
-            <option value="nova">nova</option>
-            <option value="shimmer">shimmer</option>
-          </select>
-        </div>
-      </div>
-
-      {/* 安全设置 */}
-      <div className="settings-section">
-        <div className="setting-item">
-          <div className="setting-info">
-            <div className="setting-label">安全沙箱</div>
-            <div className="setting-description">
-              启用后，文件操作和命令执行将受到安全限制
-            </div>
-          </div>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={localSettings.sandboxEnabled}
-              onChange={(e) => handleSettingChange('sandboxEnabled', e.target.checked)}
-            />
-            <span className="slider round"></span>
-          </label>
-        </div>
-      </div>
+        )
+      })}
 
       {/* 按钮区域 */}
       <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>

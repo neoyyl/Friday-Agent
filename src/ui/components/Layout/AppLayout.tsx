@@ -14,7 +14,9 @@ import { SchedulerPanel } from '../SchedulerPanel/SchedulerPanel'
 import { SelfHealPanel } from '../SelfHealPanel/SelfHealPanel'
 import { SessionList } from '../SidePanel/SessionList'
 import { ErrorBoundary } from '../common/ErrorBoundary'
+import { OnboardingWizard } from '../Onboarding/OnboardingWizard'
 import { useSessionStore } from '../../../stores/sessionStore'
+import { useSettingsStore } from '../../../stores/settingsStore'
 
 const sidebarButtons = [
   { id: 'conversations', label: 'Chats', icon: '💬', color: 'var(--cool)' },
@@ -32,7 +34,16 @@ const sidebarButtons = [
   { id: 'obsidian', label: 'Obsidian', icon: '📓', color: '#a855f7' },
 ]
 
-const panelWidth = { width: '360px', borderRight: '1px solid var(--border)', background: 'var(--bg)', overflow: 'auto', flexShrink: 0 } as const
+const panelOverlay = {
+  position: 'fixed' as const,
+  left: '56px',
+  top: 0,
+  bottom: 0,
+  width: '360px',
+  background: 'transparent',
+  overflow: 'auto',
+  zIndex: 100,
+}
 
 const PANELS: Record<string, React.ReactNode> = {
   conversations: <ErrorBoundary panelName="SessionList"><SessionList /></ErrorBoundary>,
@@ -51,66 +62,97 @@ const PANELS: Record<string, React.ReactNode> = {
 export default function AppLayout() {
   const [activePanel, setActivePanel] = useState<string | null>(null)
   const { loadSessions } = useSessionStore()
+  const { settings, isLoading, loadSettings } = useSettingsStore()
 
   useEffect(() => {
     loadSessions()
-  }, [loadSessions])
+    loadSettings()
+  }, [loadSessions, loadSettings])
+
+  if (isLoading) {
+    return null
+  }
+
+  if (!settings.onboardingCompleted) {
+    return <OnboardingWizard onComplete={() => {
+      loadSettings()
+    }} />
+  }
 
   const togglePanel = (panel: string) => {
     setActivePanel(activePanel === panel ? null : panel)
   }
 
   const isLayerPanel = activePanel === 'l1' || activePanel === 'l2'
+  const isOpen = activePanel !== null
 
   return (
     <div className="app-container" style={{ display: 'flex', height: '100vh' }}>
-      <div style={{ display: 'flex', position: 'relative', flexShrink: 0 }}>
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          gap: '4px', padding: '8px 4px', background: 'var(--bg)',
-          borderRight: '1px solid var(--border)', width: '56px', flexShrink: 0,
-        }}>
-          {sidebarButtons.map((btn) => (
-            <button
-              key={btn.id}
-              onClick={() => togglePanel(btn.id)}
-              className={`layer-btn ${activePanel === btn.id ? 'active' : ''}`}
-              title={btn.label}
-              style={{
-                '--btn-color': btn.color,
-                position: 'relative', display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-                width: '48px', height: '48px', borderRadius: '12px',
-                border: activePanel === btn.id ? `1.5px solid ${btn.color}` : '1.5px solid transparent',
-                background: activePanel === btn.id ? `color-mix(in srgb, ${btn.color} 15%, transparent)` : 'transparent',
-                cursor: 'pointer', transition: 'all 0.15s ease',
-              } as React.CSSProperties}
-              onMouseEnter={(e) => { if (activePanel !== btn.id) e.currentTarget.style.background = 'var(--bg-elevated)' }}
-              onMouseLeave={(e) => { if (activePanel !== btn.id) e.currentTarget.style.background = 'transparent' }}
-            >
-              <span style={{ fontSize: '16px', lineHeight: 1, filter: activePanel === btn.id ? 'none' : 'grayscale(40%)', transition: 'filter 0.15s' }}>{btn.icon}</span>
-              <span style={{ fontSize: '9px', marginTop: '2px', color: activePanel === btn.id ? btn.color : 'var(--text-dim)', fontWeight: activePanel === btn.id ? 600 : 400, letterSpacing: '0.02em', transition: 'color 0.15s' }}>{btn.label}</span>
-              {activePanel === btn.id && (
-                <span style={{ position: 'absolute', top: '4px', right: '4px', width: '5px', height: '5px', borderRadius: '50%', background: btn.color }} />
-              )}
-            </button>
-          ))}
-        </div>
-
-        {isLayerPanel && (
-          <SidePanel activeLayer={activePanel === 'l1' ? 'l1' : 'l2'} onLayerChange={(layer) => setActivePanel(layer)} />
-        )}
-
-        {!isLayerPanel && activePanel && PANELS[activePanel] && (
-          <div style={panelWidth}>{PANELS[activePanel]}</div>
-        )}
+      {/* 固定侧边栏按钮列 */}
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        gap: '4px', padding: '8px 4px', background: 'var(--bg)',
+        borderRight: '1px solid var(--border)', width: '56px', flexShrink: 0,
+        zIndex: 101,
+      }}>
+        {sidebarButtons.map((btn) => (
+          <button
+            key={btn.id}
+            onClick={() => togglePanel(btn.id)}
+            className={`layer-btn ${activePanel === btn.id ? 'active' : ''}`}
+            title={btn.label}
+            style={{
+              '--btn-color': btn.color,
+              position: 'relative', display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              width: '48px', height: '48px', borderRadius: '12px',
+              border: activePanel === btn.id ? `1.5px solid ${btn.color}` : '1.5px solid transparent',
+              background: activePanel === btn.id ? `color-mix(in srgb, ${btn.color} 15%, transparent)` : 'transparent',
+              cursor: 'pointer', transition: 'all 0.15s ease',
+            } as React.CSSProperties}
+            onMouseEnter={(e) => { if (activePanel !== btn.id) e.currentTarget.style.background = 'var(--bg-elevated)' }}
+            onMouseLeave={(e) => { if (activePanel !== btn.id) e.currentTarget.style.background = 'transparent' }}
+          >
+            <span style={{ fontSize: '16px', lineHeight: 1, filter: activePanel === btn.id ? 'none' : 'grayscale(40%)', transition: 'filter 0.15s' }}>{btn.icon}</span>
+            <span style={{ fontSize: '9px', marginTop: '2px', color: activePanel === btn.id ? btn.color : 'var(--text-dim)', fontWeight: activePanel === btn.id ? 600 : 400, letterSpacing: '0.02em', transition: 'color 0.15s' }}>{btn.label}</span>
+            {activePanel === btn.id && (
+              <span style={{ position: 'absolute', top: '4px', right: '4px', width: '5px', height: '5px', borderRadius: '50%', background: btn.color }} />
+            )}
+          </button>
+        ))}
       </div>
 
+      {/* 主内容区 */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <CenterArea />
       </div>
 
+      {/* 面板遮罩层 - 固定定位覆盖在主内容上 */}
+      {isOpen && (
+        <div className="panel-overlay" style={panelOverlay}>
+          {isLayerPanel ? (
+            <SidePanel activeLayer={activePanel === 'l1' ? 'l1' : 'l2'} onLayerChange={(layer) => setActivePanel(layer)} />
+          ) : (
+            PANELS[activePanel]
+          )}
+        </div>
+      )}
+
       <ThemeSwitcher />
+
+      <style>{`
+        @keyframes panelSlideIn {
+          from { opacity: 0; transform: translateX(-24px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes panelSlideOut {
+          from { opacity: 1; transform: translateX(0); }
+          to { opacity: 0; transform: translateX(-24px); }
+        }
+        .panel-overlay {
+          animation: panelSlideIn 0.2s ease-out;
+        }
+      `}</style>
     </div>
   )
 }

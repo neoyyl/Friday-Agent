@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react'
 import { useSessionStore } from '../../../stores/sessionStore'
-import { useLanguageStore } from '../../../stores/languageStore'
+import { useTranslation } from '../../../stores/languageStore'
 
 export function SessionList() {
   const { sessions, activeSessionId, setActiveSession, createSession, deleteSession, togglePin, toggleArchive } = useSessionStore()
-  const { t } = useLanguageStore()
+  const { t } = useTranslation()
   const [isCreating, setIsCreating] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [showArchived, setShowArchived] = useState(false)
