@@ -22,6 +22,14 @@ release
 # Coverage
 coverage/
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Runtime local config
+*.local.json
+
 # Local models (too large for git)
 local_models/
 
