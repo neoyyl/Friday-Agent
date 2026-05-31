@@ -1,19 +1,16 @@
 import { useState, useEffect } from 'react'
-import { useKernelStore } from '../../../stores/kernelStore'
-import { KernelGuard } from '../Layout/KernelGuard'
 
 export function SelfHealPanel() {
   const [report, setReport] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [fixing, setFixing] = useState(false)
   const [fixResult, setFixResult] = useState<any>(null)
-  const connected = useKernelStore((s) => s.connected)
 
   const runCheck = async () => {
     setLoading(true)
     setFixResult(null)
     try {
-      const result = await window.electronAPI?.kernel?.self_heal?.check()
+      const result = await window.electronAPI?.backend?.self_heal?.check()
       setReport(result)
     } catch (err: any) {
       console.error('[SelfHeal] Check failed:', err)
@@ -26,7 +23,7 @@ export function SelfHealPanel() {
     setFixing(true)
     setFixResult(null)
     try {
-      const result = await window.electronAPI?.kernel?.self_heal?.fix()
+      const result = await window.electronAPI?.backend?.self_heal?.fix()
       setFixResult(result)
       runCheck()
     } catch (err: any) {
@@ -36,13 +33,12 @@ export function SelfHealPanel() {
     }
   }
 
-  useEffect(() => { if (connected) runCheck() }, [connected])
+  useEffect(() => { runCheck() }, [])
 
   const score = report?.score ?? 0
   const scoreColor = score >= 90 ? '#22c55e' : score >= 70 ? '#f97316' : '#ef4444'
 
   return (
-    <KernelGuard>
     <div style={{ padding: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <h3 style={{ margin: 0, color: 'var(--text)', fontSize: '16px' }}>🩺 系统自检</h3>
@@ -159,6 +155,5 @@ export function SelfHealPanel() {
         </div>
       )}
     </div>
-    </KernelGuard>
   )
 }

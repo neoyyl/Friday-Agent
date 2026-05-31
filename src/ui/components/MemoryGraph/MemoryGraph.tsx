@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import * as d3 from 'd3'
 
 interface Node extends d3.SimulationNodeDatum {
@@ -14,25 +14,11 @@ interface Link extends d3.SimulationLinkDatum<Node> {
   strength: number
 }
 
-const sampleData: { nodes: Node[]; links: Link[] } = {
-  nodes: [
-    { id: 'agent-core', type: 'core', label: 'Agent Core', radius: 25 },
-    { id: 'user-pref', type: 'memory', label: 'User Preference', radius: 18 },
-    { id: 'task-history', type: 'memory', label: 'Task History', radius: 18 },
-    { id: 'conversation', type: 'memory', label: 'Conversation', radius: 18 },
-    { id: 'code-pattern', type: 'knowledge', label: 'Code Pattern', radius: 15 },
-    { id: 'tool-usage', type: 'knowledge', label: 'Tool Usage', radius: 15 },
-    { id: 'old-context', type: 'decay', label: 'Old Context', radius: 12 },
-  ],
-  links: [
-    { source: 'agent-core', target: 'user-pref', strength: 0.8 },
-    { source: 'agent-core', target: 'task-history', strength: 0.7 },
-    { source: 'agent-core', target: 'conversation', strength: 0.6 },
-    { source: 'user-pref', target: 'code-pattern', strength: 0.4 },
-    { source: 'task-history', target: 'tool-usage', strength: 0.5 },
-    { source: 'conversation', target: 'old-context', strength: 0.3 },
-  ],
-}
+const DEFAULT_NODES: Node[] = [
+  { id: 'agent-core', type: 'core', label: 'Agent Core', radius: 25 },
+]
+
+const DEFAULT_LINKS: Link[] = []
 
 const nodeColors: Record<Node['type'], string> = {
   core: 'var(--warm)',
@@ -41,8 +27,80 @@ const nodeColors: Record<Node['type'], string> = {
   decay: '#6b7280',
 }
 
+function buildGraphFromMemories(memories: Array<{ content: string; role: string; topic?: string }>): { nodes: Node[]; links: Link[] } {
+  if (!memories || memories.length === 0) {
+    return { nodes: DEFAULT_NODES, links: DEFAULT_LINKS }
+  }
+
+  const nodes: Node[] = [{ id: 'agent-core', type: 'core', label: 'Agent Core', radius: 25 }]
+  const links: Link[] = []
+
+  const topicMap = new Map<string, number>()
+
+  memories.forEach((mem, i) => {
+    const topic = mem.topic || 'general'
+    const count = topicMap.get(topic) || 0
+    topicMap.set(topic, count + 1)
+
+    const nodeId = `mem-${i}`
+    const label = mem.content.length > 25 ? mem.content.slice(0, 25) + '...' : mem.content
+    const isUser = mem.role === 'user'
+
+    nodes.push({
+      id: nodeId,
+      type: isUser ? 'memory' : 'knowledge',
+      label,
+      radius: 10 + Math.min(count, 10),
+    })
+
+    links.push({
+      source: 'agent-core',
+      target: nodeId,
+      strength: 0.3 + count * 0.1,
+    })
+  })
+
+  return { nodes, links }
+}
+
 export function MemoryGraph() {
   const svgRef = useRef<SVGSVGElement>(null)
+  const [graphData, setGraphData] = useState<{ nodes: Node[]; links: Link[] }>({
+    nodes: DEFAULT_NODES,
+    links: DEFAULT_LINKS,
+  })
+
+  useEffect(() => {
+    let cancelled = false
+    const fetchMemory = async () => {
+      try {
+        if (window.electronAPI?.backend?.memory?.list) {
+          const result = await window.electronAPI.backend.memory.list()
+          const ctx = (result as any)?.data?.context || []
+          const facts = (result as any)?.data?.facts || []
+          const memories = ctx.map((m: any) => ({
+            content: typeof m === 'string' ? m : m.content || '',
+            role: m.role || 'assistant',
+            topic: m.topic || 'general',
+          }))
+          const factMemories = facts.map((f: string) => ({
+            content: f,
+            role: 'assistant',
+            topic: 'fact',
+          }))
+          if (!cancelled) {
+            setGraphData(buildGraphFromMemories([...memories, ...factMemories]))
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setGraphData({ nodes: DEFAULT_NODES, links: DEFAULT_LINKS })
+        }
+      }
+    }
+    fetchMemory()
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     if (!svgRef.current) return
@@ -73,8 +131,8 @@ export function MemoryGraph() {
       </filter>
     `)
 
-    const simulation = d3.forceSimulation<Node>(sampleData.nodes)
-      .force('link', d3.forceLink<Node, Link>(sampleData.links)
+    const simulation = d3.forceSimulation<Node>(graphData.nodes)
+      .force('link', d3.forceLink<Node, Link>(graphData.links)
         .id((d) => d.id)
         .distance(80))
       .force('charge', d3.forceManyBody().strength(-200))
@@ -84,7 +142,7 @@ export function MemoryGraph() {
     const link = g.append('g')
       .attr('class', 'links')
       .selectAll('line')
-      .data(sampleData.links)
+      .data(graphData.links)
       .join('line')
       .attr('stroke', 'rgba(255, 255, 255, 0.2)')
       .attr('stroke-width', 1.5)
@@ -92,7 +150,7 @@ export function MemoryGraph() {
     const node = g.append('g')
       .attr('class', 'nodes')
       .selectAll<SVGGElement, Node>('g')
-      .data(sampleData.nodes)
+      .data(graphData.nodes)
       .join('g')
       .attr('filter', 'url(#glow)')
       .call(d3.drag<SVGGElement, Node>()
@@ -165,7 +223,7 @@ export function MemoryGraph() {
       simulation.stop()
       tooltip.remove()
     }
-  }, [])
+  }, [graphData])
 
   return (
     <svg

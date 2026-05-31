@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useEffect } from 'react'
-import { useKernelDataStore } from '../../../stores/kernelDataStore'
+import { useState, useEffect, useCallback } from 'react'
 
 const Section = ({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) => (
   <div style={{
@@ -26,7 +25,20 @@ const KV = ({ label, value }: { label: string; value: any }) => (
 )
 
 export function PerceptionPanel() {
-  const { perception, perceptionLoading, loadPerception } = useKernelDataStore()
+  const [perception, setPerception] = useState<Record<string, any> | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const loadPerception = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result = await window.electronAPI?.backend?.get('/api/perception/context')
+      setPerception(result ?? null)
+    } catch (err: any) {
+      console.error('[PerceptionPanel] load failed:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     loadPerception()
@@ -46,23 +58,23 @@ export function PerceptionPanel() {
               {new Date(data.timestamp).toLocaleTimeString()}
             </span>
           )}
-          <button onClick={loadPerception} disabled={perceptionLoading}
+          <button onClick={loadPerception} disabled={loading}
             style={{
               padding: '4px 8px', borderRadius: '4px',
               border: '1px solid var(--border)', background: 'transparent',
-              color: 'var(--text-dim)', cursor: perceptionLoading ? 'wait' : 'pointer', fontSize: '11px',
+              color: 'var(--text-dim)', cursor: loading ? 'wait' : 'pointer', fontSize: '11px',
             }}
           >
-            {perceptionLoading ? '...' : '刷新'}
+            {loading ? '...' : '刷新'}
           </button>
         </div>
       </div>
 
-      {perceptionLoading && !data ? (
+      {loading && !data ? (
         <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '32px' }}>加载中...</div>
       ) : !data ? (
         <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '32px' }}>
-          感知系统未连接，Kernel 启动后自动激活
+          感知系统未连接，后端启动后自动激活
         </div>
       ) : (
         <div>

@@ -1,8 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SidePanel } from '../SidePanel/SidePanel'
 import { CenterArea } from '../CenterArea/CenterArea'
 import { ThemeSwitcher } from '../ThemeSwitcher/ThemeSwitcher'
-import { KernelStatus } from '../KernelStatus/KernelStatus'
 import { AgentPanel } from '../AgentPanel/AgentPanel'
 import { SpeakerManager } from '../SpeakerManager/SpeakerManager'
 import { MemoryBrowser } from '../MemoryBrowser/MemoryBrowser'
@@ -13,9 +12,12 @@ import { ObsidianPanel } from '../ObsidianPanel/ObsidianPanel'
 import { SkillMarket } from '../SkillMarket/SkillMarket'
 import { SchedulerPanel } from '../SchedulerPanel/SchedulerPanel'
 import { SelfHealPanel } from '../SelfHealPanel/SelfHealPanel'
+import { SessionList } from '../SidePanel/SessionList'
 import { ErrorBoundary } from '../common/ErrorBoundary'
+import { useSessionStore } from '../../../stores/sessionStore'
 
 const sidebarButtons = [
+  { id: 'conversations', label: 'Chats', icon: '💬', color: 'var(--cool)' },
   { id: 'l1', label: 'L1', icon: '⚡', color: 'var(--warm)' },
   { id: 'l2', label: 'L2', icon: '🧠', color: 'var(--cool)' },
   { id: 'agents', label: 'Agents', icon: '🤖', color: 'var(--accent)' },
@@ -33,6 +35,7 @@ const sidebarButtons = [
 const panelWidth = { width: '360px', borderRight: '1px solid var(--border)', background: 'var(--bg)', overflow: 'auto', flexShrink: 0 } as const
 
 const PANELS: Record<string, React.ReactNode> = {
+  conversations: <ErrorBoundary panelName="SessionList"><SessionList /></ErrorBoundary>,
   agents: <ErrorBoundary panelName="AgentPanel"><AgentPanel /></ErrorBoundary>,
   skills: <ErrorBoundary panelName="SkillMarket"><SkillMarket /></ErrorBoundary>,
   scheduler: <ErrorBoundary panelName="SchedulerPanel"><SchedulerPanel /></ErrorBoundary>,
@@ -47,6 +50,11 @@ const PANELS: Record<string, React.ReactNode> = {
 
 export default function AppLayout() {
   const [activePanel, setActivePanel] = useState<string | null>(null)
+  const { loadSessions } = useSessionStore()
+
+  useEffect(() => {
+    loadSessions()
+  }, [loadSessions])
 
   const togglePanel = (panel: string) => {
     setActivePanel(activePanel === panel ? null : panel)
@@ -100,10 +108,6 @@ export default function AppLayout() {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <CenterArea />
-      </div>
-
-      <div style={{ position: 'fixed', bottom: '12px', right: '12px', zIndex: 100 }}>
-        <KernelStatus />
       </div>
 
       <ThemeSwitcher />

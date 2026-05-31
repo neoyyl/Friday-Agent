@@ -17,16 +17,20 @@ export class OpenAICompatibleClient implements LLMClient {
   }
 
   async chat(messages: ChatMessage[], options: ChatOptions = {}): Promise<ChatResponse> {
+    const body: Record<string, unknown> = {
+      model: options.model || 'gpt-4',
+      messages,
+      temperature: options.temperature ?? 0.7,
+      max_tokens: options.maxTokens || 4096,
+      stream: false,
+    }
+    if (options.tools && options.tools.length > 0) {
+      body.tools = options.tools
+    }
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: this.headers,
-      body: JSON.stringify({
-        model: options.model || 'gpt-4',
-        messages,
-        temperature: options.temperature ?? 0.7,
-        max_tokens: options.maxTokens || 4096,
-        stream: false,
-      }),
+      body: JSON.stringify(body),
     })
 
     if (!response.ok) {

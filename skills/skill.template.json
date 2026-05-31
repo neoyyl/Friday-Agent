@@ -1,0 +1,10 @@
+{
+  "id": "my-skill",
+  "name": "My Skill",
+  "version": "1.0.0",
+  "description": "技能描述",
+  "entry": "index.js",
+  "class": "MySkill",
+  "capabilities": ["custom"],
+  "icon": "🔧"
+}

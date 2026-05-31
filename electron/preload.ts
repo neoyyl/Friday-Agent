@@ -10,7 +10,7 @@ const sessionsAPI = {
 }
 
 const messagesAPI = {
-  list: (sessionId: string) => ipcRenderer.invoke('messages:list', sessionId),
+  list: (sessionId: string, limit?: number, offset?: number) => ipcRenderer.invoke('messages:list', sessionId, limit, offset),
   create: (sessionId: string, role: string, content: string, toolCalls?: string) =>
     ipcRenderer.invoke('messages:create', sessionId, role, content, toolCalls),
 }
@@ -73,122 +73,120 @@ const ipcAPI = {
   },
 }
 
-// --------- Friday Kernel API (Native mode — no subprocess) ---------
+const backendAPI = {
+  start: () => ipcRenderer.invoke('backend:start'),
+  stop: () => ipcRenderer.invoke('backend:stop'),
+  status: () => ipcRenderer.invoke('backend:status'),
+  getStderrLog: () => ipcRenderer.invoke('backend:getStderrLog'),
 
-const kernelAPI = {
-  start: () => ipcRenderer.invoke('kernel:start'),
-  stop: () => ipcRenderer.invoke('kernel:stop'),
-  status: () => ipcRenderer.invoke('kernel:status'),
-  getStderrLog: () => ipcRenderer.invoke('kernel:getStderrLog'),
-
-  get: (path: string) => ipcRenderer.invoke('kernel:proxy', 'GET', path),
-  post: (path: string, body?: any) => ipcRenderer.invoke('kernel:proxy', 'POST', path, body),
-  put: (path: string, body?: any) => ipcRenderer.invoke('kernel:proxy', 'PUT', path, body),
-  del: (path: string) => ipcRenderer.invoke('kernel:proxy', 'DELETE', path),
+  get: (path: string) => ipcRenderer.invoke('backend:proxy', 'GET', path),
+  post: (path: string, body?: any) => ipcRenderer.invoke('backend:proxy', 'POST', path, body),
+  put: (path: string, body?: any) => ipcRenderer.invoke('backend:proxy', 'PUT', path, body),
+  del: (path: string) => ipcRenderer.invoke('backend:proxy', 'DELETE', path),
 
   agents: {
-    list: () => ipcRenderer.invoke('kernel:agents:list'),
-    stats: () => ipcRenderer.invoke('kernel:agents:stats'),
+    list: () => ipcRenderer.invoke('backend:agents:list'),
+    stats: () => ipcRenderer.invoke('backend:agents:stats'),
     dispatch: (task: string, mode: string, options?: any) =>
-      ipcRenderer.invoke('kernel:agents:dispatch', task, mode, options),
-    history: () => ipcRenderer.invoke('kernel:agents:history'),
+      ipcRenderer.invoke('backend:agents:dispatch', task, mode, options),
+    history: () => ipcRenderer.invoke('backend:agents:history'),
   },
 
   skills: {
-    list: () => ipcRenderer.invoke('kernel:skills:list'),
-    stats: () => ipcRenderer.invoke('kernel:skills:stats'),
-    call: (id: string, params?: any) => ipcRenderer.invoke('kernel:skills:call', id, params),
-    reload: (id: string) => ipcRenderer.invoke('kernel:skills:reload', id),
-    find: (capability: string) => ipcRenderer.invoke('kernel:skills:find', capability),
-    scan: () => ipcRenderer.invoke('kernel:skills:scan'),
+    list: () => ipcRenderer.invoke('backend:skills:list'),
+    stats: () => ipcRenderer.invoke('backend:skills:stats'),
+    call: (id: string, params?: any) => ipcRenderer.invoke('backend:skills:call', id, params),
+    reload: (id: string) => ipcRenderer.invoke('backend:skills:reload', id),
+    find: (capability: string) => ipcRenderer.invoke('backend:skills:find', capability),
+    scan: () => ipcRenderer.invoke('backend:skills:scan'),
   },
 
   scheduler: {
-    status: () => ipcRenderer.invoke('kernel:scheduler:status'),
-    jobs: () => ipcRenderer.invoke('kernel:scheduler:jobs'),
-    create: (job: any) => ipcRenderer.invoke('kernel:scheduler:create', job),
-    delete: (id: string) => ipcRenderer.invoke('kernel:scheduler:delete', id),
-    toggle: (id: string) => ipcRenderer.invoke('kernel:scheduler:toggle', id),
-    runAction: (name: string) => ipcRenderer.invoke('kernel:scheduler:action', name),
+    status: () => ipcRenderer.invoke('backend:scheduler:status'),
+    jobs: () => ipcRenderer.invoke('backend:scheduler:jobs'),
+    create: (job: any) => ipcRenderer.invoke('backend:scheduler:create', job),
+    delete: (id: string) => ipcRenderer.invoke('backend:scheduler:delete', id),
+    toggle: (id: string) => ipcRenderer.invoke('backend:scheduler:toggle', id),
+    runAction: (name: string) => ipcRenderer.invoke('backend:scheduler:action', name),
   },
 
   triggers: {
-    list: () => ipcRenderer.invoke('kernel:triggers:list'),
-    create: (trigger: any) => ipcRenderer.invoke('kernel:triggers:create', trigger),
-    delete: (id: string) => ipcRenderer.invoke('kernel:triggers:delete', id),
-    toggle: (id: string) => ipcRenderer.invoke('kernel:triggers:toggle', id),
-    presets: () => ipcRenderer.invoke('kernel:triggers:presets'),
+    list: () => ipcRenderer.invoke('backend:triggers:list'),
+    create: (trigger: any) => ipcRenderer.invoke('backend:triggers:create', trigger),
+    delete: (id: string) => ipcRenderer.invoke('backend:triggers:delete', id),
+    toggle: (id: string) => ipcRenderer.invoke('backend:triggers:toggle', id),
+    presets: () => ipcRenderer.invoke('backend:triggers:presets'),
   },
 
   workflows: {
-    list: () => ipcRenderer.invoke('kernel:workflows:list'),
-    create: (workflow: any) => ipcRenderer.invoke('kernel:workflows:create', workflow),
-    run: (id: string) => ipcRenderer.invoke('kernel:workflows:run', id),
-    instances: () => ipcRenderer.invoke('kernel:workflows:instances'),
+    list: () => ipcRenderer.invoke('backend:workflows:list'),
+    create: (workflow: any) => ipcRenderer.invoke('backend:workflows:create', workflow),
+    run: (id: string) => ipcRenderer.invoke('backend:workflows:run', id),
+    instances: () => ipcRenderer.invoke('backend:workflows:instances'),
   },
 
   emotion: {
-    analyze: (text: string) => ipcRenderer.invoke('kernel:emotion:analyze', text),
-    state: () => ipcRenderer.invoke('kernel:emotion:state'),
+    analyze: (text: string) => ipcRenderer.invoke('backend:emotion:analyze', text),
+    state: () => ipcRenderer.invoke('backend:emotion:state'),
   },
 
   voice: {
-    speak: (text: string, tone?: string) => ipcRenderer.invoke('kernel:voice:speak', text, tone),
-    stop: () => ipcRenderer.invoke('kernel:voice:stop'),
-    status: () => ipcRenderer.invoke('kernel:voice:status'),
-    speakers: () => ipcRenderer.invoke('kernel:voice:speakers'),
-    register: (name: string, config?: any) => ipcRenderer.invoke('kernel:voice:register', name, config),
-    deleteSpeaker: (name: string) => ipcRenderer.invoke('kernel:voice:deleteSpeaker', name),
-    currentSpeaker: () => ipcRenderer.invoke('kernel:voice:currentSpeaker'),
-    identify: (data: any) => ipcRenderer.invoke('kernel:voice:identify', data),
+    speak: (text: string, tone?: string) => ipcRenderer.invoke('backend:voice:speak', text, tone),
+    stop: () => ipcRenderer.invoke('backend:voice:stop'),
+    status: () => ipcRenderer.invoke('backend:voice:status'),
+    speakers: () => ipcRenderer.invoke('backend:voice:speakers'),
+    register: (name: string, config?: any) => ipcRenderer.invoke('backend:voice:register', name, config),
+    deleteSpeaker: (name: string) => ipcRenderer.invoke('backend:voice:deleteSpeaker', name),
+    currentSpeaker: () => ipcRenderer.invoke('backend:voice:currentSpeaker'),
+    identify: (data: any) => ipcRenderer.invoke('backend:voice:identify', data),
     transcribe: (audioBase64: string, lang?: string) =>
-      ipcRenderer.invoke('kernel:asr:transcribe', audioBase64, lang),
+      ipcRenderer.invoke('backend:asr:transcribe', audioBase64, lang),
   },
 
   dispatch: {
-    stats: () => ipcRenderer.invoke('kernel:dispatch:stats'),
-    insights: () => ipcRenderer.invoke('kernel:dispatch:insights'),
+    stats: () => ipcRenderer.invoke('backend:dispatch:stats'),
+    insights: () => ipcRenderer.invoke('backend:dispatch:insights'),
   },
 
   log: {
-    list: () => ipcRenderer.invoke('kernel:log:list'),
-    report: () => ipcRenderer.invoke('kernel:log:report'),
+    list: () => ipcRenderer.invoke('backend:log:list'),
+    report: () => ipcRenderer.invoke('backend:log:report'),
   },
 
   timing: {
-    readiness: () => ipcRenderer.invoke('kernel:timing:readiness'),
-    shouldNotify: (data: any) => ipcRenderer.invoke('kernel:timing:shouldNotify', data),
+    readiness: () => ipcRenderer.invoke('backend:timing:readiness'),
+    shouldNotify: (data: any) => ipcRenderer.invoke('backend:timing:shouldNotify', data),
   },
 
   self_heal: {
-    check: () => ipcRenderer.invoke('kernel:self_heal:check'),
-    fix: () => ipcRenderer.invoke('kernel:self_heal:fix'),
+    check: () => ipcRenderer.invoke('backend:self_heal:check'),
+    fix: () => ipcRenderer.invoke('backend:self_heal:fix'),
   },
 
   personality: {
-    get: () => ipcRenderer.invoke('kernel:personality:get'),
+    get: () => ipcRenderer.invoke('backend:personality:get'),
   },
 
   memory: {
-    list: () => ipcRenderer.invoke('kernel:memory:list'),
-    context: () => ipcRenderer.invoke('kernel:memory:context'),
-    save: (data: any) => ipcRenderer.invoke('kernel:memory:save', data),
+    list: () => ipcRenderer.invoke('backend:memory:list'),
+    context: () => ipcRenderer.invoke('backend:memory:context'),
+    save: (data: any) => ipcRenderer.invoke('backend:memory:save', data),
   },
 
   gpu: {
-    status: () => ipcRenderer.invoke('kernel:gpu:status'),
+    status: () => ipcRenderer.invoke('backend:gpu:status'),
   },
 
   obsidian: {
-    config: () => ipcRenderer.invoke('kernel:obsidian:config'),
-    notes: (folder?: string) => ipcRenderer.invoke('kernel:obsidian:notes', folder),
-    write: (data: any) => ipcRenderer.invoke('kernel:obsidian:write', data),
+    config: () => ipcRenderer.invoke('backend:obsidian:config'),
+    notes: (folder?: string) => ipcRenderer.invoke('backend:obsidian:notes', folder),
+    write: (data: any) => ipcRenderer.invoke('backend:obsidian:write', data),
   },
 
   onEvent: (callback: (event: string, data: any) => void) => {
     const handler = (_event: any, eventName: string, data: any) => callback(eventName, data)
-    ipcRenderer.on('kernel:event', handler)
-    return () => ipcRenderer.removeListener('kernel:event', handler)
+    ipcRenderer.on('backend:event', handler)
+    return () => ipcRenderer.removeListener('backend:event', handler)
   },
 }
 
@@ -213,7 +211,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   llm: llmAPI,
   settings: settingsAPI,
   ipc: ipcAPI,
-  kernel: kernelAPI,
+  backend: backendAPI,
   update: updateAPI,
 })
 

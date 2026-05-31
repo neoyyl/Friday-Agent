@@ -15,7 +15,7 @@ import { registerMessageHandlers } from './handlers/messages'
 import { registerSettingsHandlers } from './handlers/settings'
 import { registerToolHandlers } from './handlers/tools'
 import { registerLLMHandlers } from './handlers/llm'
-import { registerKernelHandlers } from './handlers/kernel'
+import { registerBackendHandlers } from './handlers/backend'
 import { registerUpdateHandlers } from './handlers/update'
 
 process.env.APP_ROOT = path.join(__dirname, '..')
@@ -30,25 +30,22 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 
 let win: BrowserWindow | null
 
-// ========== Native Service Registry (replaces Python Kernel + KernelBridge) ==========
-
+// ========== Native Backend Service Registry ==========
 const serviceRegistry = new ServiceRegistry()
 
-// Forward service events to renderer
 serviceRegistry.getEventBus().onEvent((event: string, data: unknown) => {
   if (win && !win.isDestroyed()) {
-    win.webContents.send('kernel:event', event, data)
+    win.webContents.send('backend:event', event, data)
   }
 })
 
-// ========== 注册所有 IPC Handlers ==========
+registerBackendHandlers(serviceRegistry)
 
 registerSessionHandlers()
 registerMessageHandlers()
 registerSettingsHandlers()
 registerToolHandlers()
 registerLLMHandlers()
-registerKernelHandlers(serviceRegistry)
 registerUpdateHandlers()
 
 // ========== Window Creation ==========

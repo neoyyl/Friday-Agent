@@ -43,15 +43,26 @@ export interface PersonalityResult {
   content: string
 }
 
+export interface GPUChip {
+  index: number
+  name: string
+  temperature: number
+  utilization: number
+  memory: { used_mb: number; total_mb: number; free_mb: number }
+  power: number | null
+  maxPower: number | null
+}
+
 export interface GPUInfo {
   available: boolean
-  name?: string
-  memory_total?: number
-  memory_used?: number
-  memory_free?: number
-  utilization?: number
-  temperature?: number
-  driver_version?: string
+  error?: string
+  level: 'green' | 'yellow' | 'orange' | 'red'
+  summary: string
+  used_vram_mb: number
+  total_vram_mb: number
+  vram_percent: number
+  warnings: string[]
+  gpus: GPUChip[]
 }
 
 export interface PerceptionData {

@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useKernelStore } from '../../../stores/kernelStore'
-import { KernelGuard } from '../Layout/KernelGuard'
 
-const KERNEL_API = {
-  get scheduler() { return window.electronAPI?.kernel?.scheduler },
-  get triggers() { return window.electronAPI?.kernel?.triggers },
-  get workflows() { return window.electronAPI?.kernel?.workflows },
-  get proxy() { return window.electronAPI?.kernel },
+const BACKEND_API = {
+  get scheduler() { return window.electronAPI?.backend?.scheduler },
+  get triggers() { return window.electronAPI?.backend?.triggers },
+  get workflows() { return window.electronAPI?.backend?.workflows },
 }
 
 interface JobItem {
@@ -41,14 +38,13 @@ export function SchedulerPanel() {
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState<SchedulerForm>({ name: '', trigger_type: 'cron', trigger_args: {}, action_name: '' })
   const [saving, setSaving] = useState(false)
-  const connected = useKernelStore((s) => s.connected)
 
   const load = async () => {
     try {
       const [jr, tr, wr] = await Promise.all([
-        KERNEL_API.scheduler?.jobs(),
-        KERNEL_API.triggers?.list(),
-        KERNEL_API.workflows?.list(),
+        BACKEND_API.scheduler?.jobs(),
+        BACKEND_API.triggers?.list(),
+        BACKEND_API.workflows?.list(),
       ])
       if (jr && !jr.error) setJobs((Array.isArray(jr) ? jr : (jr as any).data?.jobs || []) as JobItem[])
       if (tr && !tr.error) setTriggers((Array.isArray(tr) ? tr : (tr as any).data?.triggers || []) as JobItem[])
@@ -58,12 +54,12 @@ export function SchedulerPanel() {
     }
   }
 
-  useEffect(() => { if (connected) load() }, [connected])
+  useEffect(() => { load() }, [])
 
   const handleToggle = async (type: string, id: string) => {
     try {
-      if (type === 'job') await KERNEL_API.scheduler?.toggle(id)
-      if (type === 'trigger') await KERNEL_API.triggers?.toggle(id)
+      if (type === 'job') await BACKEND_API.scheduler?.toggle(id)
+      if (type === 'trigger') await BACKEND_API.triggers?.toggle(id)
       load()
     } catch (err) {
       console.error('[SchedulerPanel] toggle failed:', err)
@@ -72,9 +68,8 @@ export function SchedulerPanel() {
 
   const handleDelete = async (type: string, id: string) => {
     try {
-      if (type === 'job') await KERNEL_API.scheduler?.delete(id)
-      if (type === 'trigger') await KERNEL_API.triggers?.delete(id)
-      if (type === 'workflow') await KERNEL_API.proxy?.del?.(`/api/workflows/${id}`)
+      if (type === 'job') await BACKEND_API.scheduler?.delete(id)
+      if (type === 'trigger') await BACKEND_API.triggers?.delete(id)
       load()
     } catch (err) {
       console.error('[SchedulerPanel] delete failed:', err)
@@ -83,8 +78,8 @@ export function SchedulerPanel() {
 
   const handleRun = async (type: string, id: string) => {
     try {
-      if (type === 'workflow') await KERNEL_API.workflows?.run(id)
-      if (type === 'job') await KERNEL_API.scheduler?.runAction(id)
+      if (type === 'workflow') await BACKEND_API.workflows?.run(id)
+      if (type === 'job') await BACKEND_API.scheduler?.runAction(id)
     } catch (err) {
       console.error('[SchedulerPanel] run failed:', err)
     }
@@ -95,21 +90,21 @@ export function SchedulerPanel() {
     setSaving(true)
     try {
       if (tab === 'jobs') {
-        await KERNEL_API.scheduler?.create({
+        await BACKEND_API.scheduler?.create({
           name: form.name,
           trigger_type: form.trigger_type,
           trigger_args: form.trigger_args,
           action_name: form.action_name || 'event',
         } as any)
       } else if (tab === 'triggers') {
-        await KERNEL_API.triggers?.create({
+        await BACKEND_API.triggers?.create({
           name: form.name,
           event_pattern: form.event_pattern || 'scheduler.health_report',
           condition: form.condition || { type: 'threshold', field: 'disk_free', operator: '<', value: 20 },
           action_name: form.action_name || 'notifier.warning',
         } as any)
       } else if (tab === 'workflows') {
-        await KERNEL_API.workflows?.create({
+        await BACKEND_API.workflows?.create({
           name: form.name,
           steps: (form.steps || [{ name: 'step1', action: form.action_name || 'event' }]) as unknown as number,
         } as any)
@@ -265,7 +260,6 @@ export function SchedulerPanel() {
   )
 
   return (
-    <KernelGuard>
     <div style={{ padding: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <h3 style={{ margin: 0, color: 'var(--text)', fontSize: '16px' }}>调度管理</h3>
@@ -322,6 +316,5 @@ export function SchedulerPanel() {
         </div>
       )}
     </div>
-    </KernelGuard>
   )
 }

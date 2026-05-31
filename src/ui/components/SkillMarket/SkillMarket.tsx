@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useKernelStore } from '../../../stores/kernelStore'
-import { KernelGuard } from '../Layout/KernelGuard'
 
 type LoadState = 'idle' | 'loading' | 'success' | 'error'
 
@@ -27,13 +25,13 @@ function flattenSkill(raw: any): SkillItem {
   }
 }
 
-async function loadSkillsFromKernel(): Promise<{ data: SkillItem[] } | { error: string }> {
-  const kernel = window.electronAPI?.kernel
-  if (!kernel?.skills?.list) return { error: 'Kernel API not available' }
+async function loadSkillsFromBackend(): Promise<{ data: SkillItem[] } | { error: string }> {
+  const backend = window.electronAPI?.backend
+  if (!backend?.skills?.list) return { error: 'Backend API not available' }
 
   try {
-    const result = await kernel.skills.list()
-    if (!result) return { error: 'Empty response from kernel' }
+    const result = await backend.skills.list()
+    if (!result) return { error: 'Empty response from backend' }
     if (result.error) return { error: result.error }
 
     const rawSkills = result.data?.skills || (Array.isArray(result) ? result : null)
@@ -49,13 +47,11 @@ export function SkillMarket() {
   const [skills, setSkills] = useState<SkillItem[]>([])
   const [loadState, setLoadState] = useState<LoadState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
-  const connected = useKernelStore((s) => s.connected)
 
   const reload = useCallback(async () => {
-    if (!connected) { setLoadState('idle'); setSkills([]); return }
     setLoadState('loading')
     setErrorMsg('')
-    const res = await loadSkillsFromKernel()
+    const res = await loadSkillsFromBackend()
     if ('error' in res) {
       setLoadState('error')
       setErrorMsg(res.error)
@@ -64,7 +60,7 @@ export function SkillMarket() {
       setLoadState('success')
       setSkills(res.data)
     }
-  }, [connected])
+  }, [])
 
   useEffect(() => {
     reload()
@@ -73,7 +69,6 @@ export function SkillMarket() {
   const retry = () => { reload() }
 
   return (
-    <KernelGuard>
     <div style={{ padding: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <h3 style={{ margin: 0, color: 'var(--text)', fontSize: '16px' }}>Skill 技能</h3>
@@ -147,6 +142,5 @@ export function SkillMarket() {
         </div>
       )}
     </div>
-    </KernelGuard>
   )
 }

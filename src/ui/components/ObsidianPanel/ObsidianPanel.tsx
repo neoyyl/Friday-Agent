@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { useKernelDataStore } from '../../../stores/kernelDataStore'
+import { useState, useEffect, useCallback } from 'react'
 
 export function ObsidianPanel() {
   const [tab, setTab] = useState<'notes' | 'write'>('notes')
@@ -9,42 +8,64 @@ export function ObsidianPanel() {
   const [noteFolder, setNoteFolder] = useState('')
   const [saving, setSaving] = useState(false)
   const [feedback, setFeedback] = useState('')
+  const [obsidianConfig, setObsidianConfig] = useState<any>(null)
+  const [obsidianNotes, setObsidianNotes] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
 
-  const { obsidianConfig, obsidianNotes, obsidianLoading, loadObsidian, writeObsidianNote } = useKernelDataStore()
+  const loadObsidian = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [configResult, notesResult] = await Promise.all([
+        window.electronAPI?.backend?.obsidian?.config(),
+        window.electronAPI?.backend?.obsidian?.notes(),
+      ])
+      setObsidianConfig(configResult ?? null)
+      setObsidianNotes(Array.isArray(notesResult) ? notesResult : (notesResult as any)?.data?.notes || [])
+    } catch (err: any) {
+      console.error('[ObsidianPanel] load failed:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => { loadObsidian() }, [loadObsidian])
 
   const handleWrite = async () => {
     if (!noteTitle.trim()) return
     setSaving(true)
-    const ok = await writeObsidianNote(
-      noteTitle.trim(),
-      noteContent,
-      noteTags.split(',').map((t: string) => t.trim()).filter(Boolean),
-      noteFolder.trim(),
-    )
-    setFeedback(ok ? '笔记已写入' : '写入失败')
-    if (ok) {
+    try {
+      await window.electronAPI?.backend?.obsidian?.write({
+        title: noteTitle.trim(),
+        content: noteContent,
+        tags: noteTags.split(',').map((t: string) => t.trim()).filter(Boolean),
+        folder: noteFolder.trim(),
+      })
+      setFeedback('笔记已写入')
       setNoteTitle('')
       setNoteContent('')
       setNoteTags('')
       setTimeout(() => setFeedback(''), 3000)
+      loadObsidian()
+    } catch (err: any) {
+      setFeedback('写入失败')
+      console.error('[ObsidianPanel] write failed:', err)
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   return (
     <div style={{ padding: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <h3 style={{ margin: 0, color: 'var(--text)', fontSize: '16px' }}>Obsidian</h3>
-        <button onClick={loadObsidian} disabled={obsidianLoading}
+        <button onClick={loadObsidian} disabled={loading}
           style={{
             padding: '4px 8px', borderRadius: '4px',
             border: '1px solid var(--border)', background: 'transparent',
-            color: 'var(--text-dim)', cursor: obsidianLoading ? 'wait' : 'pointer', fontSize: '11px',
+            color: 'var(--text-dim)', cursor: loading ? 'wait' : 'pointer', fontSize: '11px',
           }}
         >
-          {obsidianLoading ? '...' : '刷新'}
+          {loading ? '...' : '刷新'}
         </button>
       </div>
 
@@ -81,7 +102,7 @@ export function ObsidianPanel() {
         ))}
       </div>
 
-      {obsidianLoading && !obsidianConfig ? (
+      {loading && !obsidianConfig ? (
         <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '32px' }}>加载中...</div>
       ) : tab === 'notes' ? (
         <div>

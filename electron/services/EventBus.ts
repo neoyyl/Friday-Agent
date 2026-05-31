@@ -13,11 +13,11 @@ export class AppEventBus extends EventEmitter {
   }
 
   emitEvent(event: string, data: unknown): void {
-    this.emit('kernel:event', event, data)
+    this.emit('backend:event', event, data)
   }
 
   onEvent(listener: EventListener): () => void {
-    this.on('kernel:event', listener)
-    return () => this.off('kernel:event', listener)
+    this.on('backend:event', listener)
+    return () => this.off('backend:event', listener)
   }
 }

@@ -1,17 +1,17 @@
-export interface KernelResponse<T = unknown> {
+export interface BackendResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string
 }
 
-export interface KernelError {
+export interface BackendError {
   error: string
 }
 
-export function unwrapKernelResponse<T>(res: KernelResponse<T> | T | undefined | null, fallbackName = 'data'): T {
-  if (res == null) throw new Error('KernelResponse is null/undefined')
+export function unwrapBackendResponse<T>(res: BackendResponse<T> | T | undefined | null, fallbackName = 'data'): T {
+  if (res == null) throw new Error('BackendResponse is null/undefined')
   if (typeof res === 'object' && 'error' in res && res.error) throw new Error(res.error as string)
-  if (typeof res === 'object' && 'data' in res && 'success' in res) return (res as KernelResponse<T>).data as T
+  if (typeof res === 'object' && 'data' in res && 'success' in res) return (res as BackendResponse<T>).data as T
   return res as T
 }
 
@@ -89,7 +89,7 @@ export interface ModelInfo {
   provider: string
 }
 
-export interface KernelStatus {
+export interface BackendStatus {
   process: string
   pid: number
   wsConnected: boolean
@@ -105,7 +105,7 @@ export interface ElectronAPI {
   }
 
   messages: {
-    list(sessionId: string): Promise<MessageRecord[]>
+    list(sessionId: string, limit?: number, offset?: number): Promise<MessageRecord[]>
     create(sessionId: string, role: string, content: string, toolCalls?: string): Promise<MessageRecord>
   }
 
@@ -136,110 +136,110 @@ export interface ElectronAPI {
     invoke(channel: string, ...args: unknown[]): Promise<unknown>
   }
 
-  kernel: {
-    start(): Promise<KernelResponse<{ status: string }>>
-    stop(): Promise<KernelResponse<{ success: boolean }>>
-    status(): Promise<KernelStatus>
-    get<T = unknown>(path: string): Promise<KernelError | KernelResponse<T>>
-    post<T = unknown>(path: string, body?: unknown): Promise<KernelError | KernelResponse<T>>
-    put<T = unknown>(path: string, body?: unknown): Promise<KernelError | KernelResponse<T>>
-    del<T = unknown>(path: string): Promise<KernelError | KernelResponse<T>>
+  backend: {
+    start(): Promise<BackendResponse<{ status: string }>>
+    stop(): Promise<BackendResponse<{ success: boolean }>>
+    status(): Promise<BackendStatus>
+    get<T = unknown>(path: string): Promise<BackendError | BackendResponse<T>>
+    post<T = unknown>(path: string, body?: unknown): Promise<BackendError | BackendResponse<T>>
+    put<T = unknown>(path: string, body?: unknown): Promise<BackendError | BackendResponse<T>>
+    del<T = unknown>(path: string): Promise<BackendError | BackendResponse<T>>
 
     agents: {
-      list(): Promise<KernelResponse<AgentListResponse>>
-      stats(): Promise<KernelResponse<AgentStatsResponse>>
-      dispatch(task: string, mode: string, options?: Record<string, unknown>): Promise<KernelResponse<DispatchResultResponse>>
-      history(): Promise<KernelResponse<HistoryResponse>>
+      list(): Promise<BackendResponse<AgentListResponse>>
+      stats(): Promise<BackendResponse<AgentStatsResponse>>
+      dispatch(task: string, mode: string, options?: Record<string, unknown>): Promise<BackendResponse<DispatchResultResponse>>
+      history(): Promise<BackendResponse<HistoryResponse>>
     }
 
     skills: {
-      list(): Promise<KernelResponse<SkillListResponse>>
-      stats(): Promise<KernelResponse<SkillStatsResponse>>
-      call(id: string, params?: Record<string, unknown>): Promise<KernelResponse<unknown>>
-      reload(id: string): Promise<KernelResponse<{ success: boolean }>>
-      find(capability: string): Promise<KernelResponse<{ skills: Array<{ id: string; name: string; version: string }> }>>
-      scan(): Promise<KernelResponse<{ loaded: number }>>
+      list(): Promise<BackendResponse<SkillListResponse>>
+      stats(): Promise<BackendResponse<SkillStatsResponse>>
+      call(id: string, params?: Record<string, unknown>): Promise<BackendResponse<unknown>>
+      reload(id: string): Promise<BackendResponse<{ success: boolean }>>
+      find(capability: string): Promise<BackendResponse<{ skills: Array<{ id: string; name: string; version: string }> }>>
+      scan(): Promise<BackendResponse<{ loaded: number }>>
     }
 
     scheduler: {
-      status(): Promise<KernelResponse<SchedulerStatusResponse>>
-      jobs(): Promise<KernelResponse<{ jobs: SchedulerJobResponse[] }>>
-      create(job: Partial<SchedulerJobResponse>): Promise<KernelResponse<SchedulerJobResponse>>
-      delete(id: string): Promise<KernelResponse<{ success: boolean }>>
-      toggle(id: string): Promise<KernelResponse<SchedulerJobResponse | null>>
-      runAction(name: string): Promise<KernelResponse<{ success: boolean }>>
+      status(): Promise<BackendResponse<SchedulerStatusResponse>>
+      jobs(): Promise<BackendResponse<{ jobs: SchedulerJobResponse[] }>>
+      create(job: Partial<SchedulerJobResponse>): Promise<BackendResponse<SchedulerJobResponse>>
+      delete(id: string): Promise<BackendResponse<{ success: boolean }>>
+      toggle(id: string): Promise<BackendResponse<SchedulerJobResponse | null>>
+      runAction(name: string): Promise<BackendResponse<{ success: boolean }>>
     }
 
     triggers: {
-      list(): Promise<KernelResponse<{ triggers: TriggerResponse[] }>>
-      create(trigger: Partial<TriggerResponse>): Promise<KernelResponse<TriggerResponse>>
-      delete(id: string): Promise<KernelResponse<{ success: boolean }>>
-      toggle(id: string): Promise<KernelResponse<TriggerResponse | null>>
-      presets(): Promise<KernelResponse<TriggerPreset[]>>
+      list(): Promise<BackendResponse<{ triggers: TriggerResponse[] }>>
+      create(trigger: Partial<TriggerResponse>): Promise<BackendResponse<TriggerResponse>>
+      delete(id: string): Promise<BackendResponse<{ success: boolean }>>
+      toggle(id: string): Promise<BackendResponse<TriggerResponse | null>>
+      presets(): Promise<BackendResponse<TriggerPreset[]>>
     }
 
     workflows: {
-      list(): Promise<KernelResponse<{ workflows: WorkflowDefResponse[] }>>
-      create(workflow: Partial<WorkflowDefResponse>): Promise<KernelResponse<WorkflowDefResponse>>
-      run(id: string): Promise<KernelResponse<{ success: boolean; instance_id: string }>>
-      instances(): Promise<KernelResponse<{ instances: WorkflowInstanceResponse[] }>>
+      list(): Promise<BackendResponse<{ workflows: WorkflowDefResponse[] }>>
+      create(workflow: Partial<WorkflowDefResponse>): Promise<BackendResponse<WorkflowDefResponse>>
+      run(id: string): Promise<BackendResponse<{ success: boolean; instance_id: string }>>
+      instances(): Promise<BackendResponse<{ instances: WorkflowInstanceResponse[] }>>
     }
 
     emotion: {
-      analyze(text: string): Promise<KernelResponse<EmotionResultResponse>>
-      state(): Promise<KernelResponse<EmotionStateResponse>>
+      analyze(text: string): Promise<BackendResponse<EmotionResultResponse>>
+      state(): Promise<BackendResponse<EmotionStateResponse>>
     }
 
     voice: {
-      speak(text: string, tone?: string): Promise<KernelResponse<{ success: boolean }>>
-      stop(): Promise<KernelResponse<{ success: boolean }>>
-      status(): Promise<KernelResponse<TTSStateResponse>>
-      speakers(): Promise<KernelResponse<{ speakers: SpeakerInfoResponse[] }>>
-      register(name: string, config?: Record<string, unknown>): Promise<KernelResponse<SpeakerInfoResponse>>
-      deleteSpeaker(name: string): Promise<KernelResponse<{ success: boolean }>>
-      currentSpeaker(): Promise<KernelResponse<SpeakerInfoResponse | null>>
-      identify(data: unknown): Promise<KernelResponse<{ speaker: string; confidence: number }>>
-      transcribe(audioBase64: string, lang?: string): Promise<KernelResponse<{ text: string; lang: string }>>
+      speak(text: string, tone?: string): Promise<BackendResponse<{ success: boolean }>>
+      stop(): Promise<BackendResponse<{ success: boolean }>>
+      status(): Promise<BackendResponse<TTSStateResponse>>
+      speakers(): Promise<BackendResponse<{ speakers: SpeakerInfoResponse[] }>>
+      register(name: string, config?: Record<string, unknown>): Promise<BackendResponse<SpeakerInfoResponse>>
+      deleteSpeaker(name: string): Promise<BackendResponse<{ success: boolean }>>
+      currentSpeaker(): Promise<BackendResponse<SpeakerInfoResponse | null>>
+      identify(data: unknown): Promise<BackendResponse<{ speaker: string; confidence: number }>>
+      transcribe(audioBase64: string, lang?: string): Promise<BackendResponse<{ text: string; lang: string }>>
     }
 
     dispatch: {
-      stats(): Promise<KernelResponse<DispatchStatsResponse>>
-      insights(): Promise<KernelResponse<DispatchInsightResponse[]>>
+      stats(): Promise<BackendResponse<DispatchStatsResponse>>
+      insights(): Promise<BackendResponse<DispatchInsightResponse[]>>
     }
 
     log: {
-      list(): Promise<KernelResponse<ExecutionRecordResponse[]>>
-      report(): Promise<KernelResponse<ExecutionReportResponse>>
+      list(): Promise<BackendResponse<ExecutionRecordResponse[]>>
+      report(): Promise<BackendResponse<ExecutionReportResponse>>
     }
 
     timing: {
-      readiness(): Promise<KernelResponse<TimingReadinessResponse>>
-      shouldNotify(data: unknown): Promise<KernelResponse<boolean>>
+      readiness(): Promise<BackendResponse<TimingReadinessResponse>>
+      shouldNotify(data: unknown): Promise<BackendResponse<boolean>>
     }
 
     self_heal: {
-      check(): Promise<KernelResponse<HealCheckResponse>>
-      fix(): Promise<KernelResponse<HealFixResponse>>
+      check(): Promise<BackendResponse<HealCheckResponse>>
+      fix(): Promise<BackendResponse<HealFixResponse>>
     }
 
     personality: {
-      get(): Promise<KernelResponse<{ content: string }>>
+      get(): Promise<BackendResponse<{ content: string }>>
     }
 
     memory: {
-      list(): Promise<KernelResponse<MemoryListResponse>>
-      context(): Promise<KernelResponse<MemoryContextResponse>>
-      save(data: { role: string; content: string; emotion?: string; topic?: string }): Promise<KernelResponse<{ success: boolean }>>
+      list(): Promise<BackendResponse<MemoryListResponse>>
+      context(): Promise<BackendResponse<MemoryContextResponse>>
+      save(data: { role: string; content: string; emotion?: string; topic?: string }): Promise<BackendResponse<{ success: boolean }>>
     }
 
     gpu: {
-      status(): Promise<KernelResponse<GPUStatusResponse>>
+      status(): Promise<BackendResponse<GPUStatusResponse>>
     }
 
     obsidian: {
-      config(): Promise<KernelResponse<ObsidianConfigResponse>>
-      notes(folder?: string): Promise<KernelResponse<{ notes: ObsidianNoteResponse[]; vault: string }>>
-      write(data: { title: string; content: string; tags?: string[]; folder?: string }): Promise<KernelResponse<{ path: string }>>
+      config(): Promise<BackendResponse<ObsidianConfigResponse>>
+      notes(folder?: string): Promise<BackendResponse<{ notes: ObsidianNoteResponse[]; vault: string }>>
+      write(data: { title: string; content: string; tags?: string[]; folder?: string }): Promise<BackendResponse<{ path: string }>>
     }
 
     onEvent(callback: (event: string, data: unknown) => void): () => void

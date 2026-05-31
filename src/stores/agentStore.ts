@@ -42,7 +42,7 @@ interface AgentState {
   loadHistory: () => Promise<void>
 }
 
-const api = () => window.electronAPI?.kernel
+const api = () => window.electronAPI?.backend
 
 export const useAgentStore = create<AgentState>((set) => ({
   agents: [],
@@ -103,7 +103,7 @@ export const useAgentStore = create<AgentState>((set) => ({
   dispatchTask: async (task: string, mode: string = 'direct') => {
     set({ isDispatching: true })
     try {
-      const result = await window.electronAPI!.kernel.agents.dispatch(task, mode)
+      const result = await window.electronAPI!.backend.agents.dispatch(task, mode)
       if (result && !result.error && result.data) {
         const d = result.data as Record<string, any>
         const record: DispatchRecord = {
@@ -133,7 +133,7 @@ export const useAgentStore = create<AgentState>((set) => ({
 
   loadHistory: async () => {
     try {
-      const result = await window.electronAPI!.kernel.agents.history()
+      const result = await window.electronAPI!.backend.agents.history()
       if (result && !result.error) {
         // 后端返回格式: {success: true, data: {history: [...]}}
         const history = (result.data?.history || []) as unknown as DispatchRecord[]

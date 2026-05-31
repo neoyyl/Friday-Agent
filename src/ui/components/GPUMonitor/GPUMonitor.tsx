@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import { useKernelDataStore } from '../../../stores/kernelDataStore'
+import { useState, useEffect, useCallback } from 'react'
 
 const levelColor = (level: string) => {
   switch (level) {
@@ -28,7 +27,20 @@ const Bar = ({ value, max, color }: { value: number; max: number; color: string 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export function GPUMonitor() {
-  const { gpu, gpuLoading, loadGPU } = useKernelDataStore()
+  const [gpu, setGpu] = useState<Record<string, any> | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const loadGPU = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result = await window.electronAPI?.backend?.gpu?.status()
+      setGpu(result ?? null)
+    } catch (err: any) {
+      console.error('[GPUMonitor] load failed:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => { loadGPU() }, [loadGPU])
 
@@ -38,18 +50,18 @@ export function GPUMonitor() {
     <div style={{ padding: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <h3 style={{ margin: 0, color: 'var(--text)', fontSize: '16px' }}>GPU 监控</h3>
-        <button onClick={loadGPU} disabled={gpuLoading}
+        <button onClick={loadGPU} disabled={loading}
           style={{
             padding: '4px 8px', borderRadius: '4px',
             border: '1px solid var(--border)', background: 'transparent',
-            color: 'var(--text-dim)', cursor: gpuLoading ? 'wait' : 'pointer', fontSize: '11px',
+            color: 'var(--text-dim)', cursor: loading ? 'wait' : 'pointer', fontSize: '11px',
           }}
         >
-          {gpuLoading ? '...' : '刷新'}
+          {loading ? '...' : '刷新'}
         </button>
       </div>
 
-      {gpuLoading && !data ? (
+      {loading && !data ? (
         <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '32px' }}>检测 GPU...</div>
       ) : !data?.available ? (
         <div style={{
@@ -79,43 +91,43 @@ export function GPUMonitor() {
             </div>
           </div>
 
-          {data.gpus?.map((gpu: any, i: number) => (
+          {data.gpus?.map((gpuInfo: any, i: number) => (
             <div key={i} style={{
               padding: '10px 12px', borderRadius: '8px',
               border: '1px solid var(--border)', background: 'var(--bg-elevated)',
               marginBottom: '6px',
             }}>
               <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '13px', marginBottom: '6px' }}>
-                GPU {gpu.index}: {gpu.name}
+                GPU {gpuInfo.index}: {gpuInfo.name}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '11px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-dim)' }}>温度</span>
-                  <span style={{ color: gpu.temperature > 80 ? '#ef4444' : gpu.temperature > 65 ? '#f97316' : 'var(--text)', fontWeight: 600 }}>
-                    {gpu.temperature}°C
+                  <span style={{ color: gpuInfo.temperature > 80 ? '#ef4444' : gpuInfo.temperature > 65 ? '#f97316' : 'var(--text)', fontWeight: 600 }}>
+                    {gpuInfo.temperature}°C
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-dim)' }}>利用率</span>
-                  <span style={{ color: gpu.utilization > 90 ? '#ef4444' : 'var(--text)', fontWeight: 600 }}>
-                    {gpu.utilization}%
+                  <span style={{ color: gpuInfo.utilization > 90 ? '#ef4444' : 'var(--text)', fontWeight: 600 }}>
+                    {gpuInfo.utilization}%
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-dim)' }}>显存</span>
                   <span style={{ color: 'var(--text)', fontWeight: 600 }}>
-                    {gpu.memory?.used_mb}/{gpu.memory?.total_mb} MB
+                    {gpuInfo.memory?.used_mb}/{gpuInfo.memory?.total_mb} MB
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-dim)' }}>功耗</span>
                   <span style={{ color: 'var(--text)', fontWeight: 600 }}>
-                    {gpu.power || '-'} W
+                    {gpuInfo.power || '-'} W
                   </span>
                 </div>
               </div>
               <div style={{ marginTop: '6px' }}>
-                <Bar value={gpu.memory?.used_mb || 0} max={gpu.memory?.total_mb || 1} color={gpu.utilization > 90 ? '#ef4444' : '#22c55e'} />
+                <Bar value={gpuInfo.memory?.used_mb || 0} max={gpuInfo.memory?.total_mb || 1} color={gpuInfo.utilization > 90 ? '#ef4444' : '#22c55e'} />
               </div>
             </div>
           ))}

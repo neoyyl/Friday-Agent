@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { useKernelDataStore } from '../../../stores/kernelDataStore'
+import { useState, useEffect, useCallback } from 'react'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -9,25 +8,53 @@ export function SpeakerManager() {
   const [newAlias, setNewAlias] = useState('')
   const [newTone, setNewTone] = useState('default')
   const [saving, setSaving] = useState(false)
+  const [speakers, setSpeakers] = useState<Record<string, any>[]>([])
+  const [currentSpeaker, setCurrentSpeaker] = useState<Record<string, any> | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  const { speakers, currentSpeaker, speakerLoading, loadSpeakers, registerSpeaker, deleteSpeaker } = useKernelDataStore()
+  const loadSpeakers = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [speakersResult, currentResult] = await Promise.all([
+        window.electronAPI?.backend?.voice?.speakers(),
+        window.electronAPI?.backend?.voice?.currentSpeaker(),
+      ])
+      setSpeakers(Array.isArray(speakersResult) ? speakersResult : (speakersResult as any)?.data?.speakers || [])
+      setCurrentSpeaker(currentResult ?? null)
+    } catch (err: any) {
+      console.error('[SpeakerManager] load failed:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => { loadSpeakers() }, [loadSpeakers])
 
   const handleRegister = async () => {
     if (!newName.trim()) return
     setSaving(true)
-    const config: any = { alias: newAlias.trim() || newName.trim(), tone: newTone }
-    await registerSpeaker(newName.trim(), config)
-    setNewName('')
-    setNewAlias('')
-    setNewTone('default')
-    setShowRegister(false)
-    setSaving(false)
+    try {
+      const config: any = { alias: newAlias.trim() || newName.trim(), tone: newTone }
+      await window.electronAPI?.backend?.voice?.register(newName.trim(), config)
+      setNewName('')
+      setNewAlias('')
+      setNewTone('default')
+      setShowRegister(false)
+      loadSpeakers()
+    } catch (err: any) {
+      console.error('[SpeakerManager] register failed:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleDelete = async (name: string) => {
-    await deleteSpeaker(name)
+    try {
+      await window.electronAPI?.backend?.voice?.deleteSpeaker(name)
+      loadSpeakers()
+    } catch (err: any) {
+      console.error('[SpeakerManager] delete failed:', err)
+    }
   }
 
   const curSpkr = currentSpeaker as Record<string, any> | null
@@ -120,7 +147,7 @@ export function SpeakerManager() {
         </div>
       )}
 
-      {speakerLoading ? (
+      {loading ? (
         <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '32px' }}>加载中...</div>
       ) : spList.length === 0 ? (
         <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '32px' }}>

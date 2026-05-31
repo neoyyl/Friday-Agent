@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useAgentStore, Agent } from '../../../stores/agentStore'
-import { useKernelStore } from '../../../stores/kernelStore'
 
 export function AgentPanel() {
   const { agents, stats, isDispatching, lastResult, loadAgents, loadStats, dispatchTask } = useAgentStore()
-  const { connected } = useKernelStore()
   const [taskInput, setTaskInput] = useState('')
   const [mode, setMode] = useState<string>('direct')
 
   useEffect(() => {
-    if (!connected) return
     loadAgents()
     loadStats()
-  }, [connected])
+  }, [])
 
   const handleDispatch = async () => {
     if (!taskInput.trim() || isDispatching) return
@@ -122,7 +119,7 @@ export function AgentPanel() {
         ))}
         {agents.length === 0 && (
           <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-dim)', padding: '32px' }}>
-            暂无 Agent 数据，请确保 Kernel 已启动
+            暂无 Agent 数据
           </div>
         )}
       </div>

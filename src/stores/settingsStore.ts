@@ -1,23 +1,27 @@
 import { create } from 'zustand'
 
 export interface Settings {
-  // 旧的单提供商配置（保留兼容）
   apiKey: string
   model: string
-  
-  // 新的多提供商配置
+
   provider: string
   providerConfigs: Record<string, Record<string, string>>
-  
-  // 外观设置
+
   theme: 'light' | 'dark' | 'system'
-  
-  // 生成设置
+
   temperature: string
   maxTokens: string
-  
-  // 安全设置
+
   sandboxEnabled: boolean
+
+  voiceLang: string
+  voiceAutoSend: boolean
+  voiceThreshold: string
+
+  ttsProvider: string
+  ttsVoice: string
+
+  showGraph: boolean
 }
 
 interface SettingsState {
@@ -33,6 +37,37 @@ interface SettingsState {
   saveSettings: (settings: Partial<Settings>) => Promise<void>
 }
 
+const BOOLEAN_KEYS = new Set(['sandboxEnabled', 'voiceAutoSend', 'showGraph'])
+
+function serializeSettings(settings: Partial<Settings>): Record<string, string> {
+  const result: Record<string, string> = {}
+  for (const [key, value] of Object.entries(settings)) {
+    if (key === 'providerConfigs') {
+      result[key] = JSON.stringify(value)
+    } else {
+      result[key] = String(value ?? '')
+    }
+  }
+  return result
+}
+
+function deserializeSettings(raw: Record<string, string>): Partial<Settings> {
+  const result: Record<string, unknown> = { ...raw }
+  for (const key of BOOLEAN_KEYS) {
+    if (key in result) {
+      result[key] = result[key] === 'true'
+    }
+  }
+  if (result.providerConfigs && typeof result.providerConfigs === 'string') {
+    try {
+      result.providerConfigs = JSON.parse(result.providerConfigs)
+    } catch {
+      result.providerConfigs = { openai: {} }
+    }
+  }
+  return result as Partial<Settings>
+}
+
 const defaultSettings: Settings = {
   apiKey: '',
   model: 'gpt-4o',
@@ -44,6 +79,12 @@ const defaultSettings: Settings = {
   temperature: '0.7',
   maxTokens: '4096',
   sandboxEnabled: true,
+  voiceLang: 'zh-CN',
+  voiceAutoSend: true,
+  voiceThreshold: '0.008',
+  ttsProvider: 'openai',
+  ttsVoice: 'alloy',
+  showGraph: true,
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -64,7 +105,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     try {
       const settings = await window.electronAPI!.settings.get()
       if (settings) {
-        setSettings(settings as Partial<Settings>)
+        setSettings(deserializeSettings(settings as Record<string, string>))
       }
     } catch (error) {
       console.error('Failed to load settings:', error)
@@ -76,7 +117,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   saveSettings: async (newSettings) => {
     const { setSettings } = get()
     try {
-      await window.electronAPI!.settings.update(newSettings as Record<string, string>)
+      const serialized = serializeSettings(newSettings)
+      await window.electronAPI!.settings.update(serialized)
       setSettings(newSettings)
     } catch (error) {
       console.error('Failed to save settings:', error)

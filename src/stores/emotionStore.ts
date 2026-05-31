@@ -36,7 +36,7 @@ export const useEmotionStore = create<EmotionState>((set, get) => ({
   analyze: async (text: string) => {
     set({ isAnalyzing: true })
     try {
-      const result = await window.electronAPI!.kernel.emotion.analyze(text)
+      const result = await window.electronAPI!.backend.emotion.analyze(text)
       if (result && !result.error) {
         const d = result.data as Record<string, unknown> | undefined
         const emotion: EmotionResult = {
@@ -63,7 +63,7 @@ export const useEmotionStore = create<EmotionState>((set, get) => ({
 
   getState: async () => {
     try {
-      const result = await window.electronAPI!.kernel.emotion.state()
+      const result = await window.electronAPI!.backend.emotion.state()
       if (result && !result.error) {
         const d = result.data as Record<string, unknown> | undefined
         set({

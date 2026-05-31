@@ -1,15 +1,33 @@
-import { useState, useEffect } from 'react'
-import { useKernelDataStore } from '../../../stores/kernelDataStore'
+import { useState, useEffect, useCallback } from 'react'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export function ExecutionLog() {
   const [tab, setTab] = useState<'log' | 'report'>('log')
   const [filter, setFilter] = useState('')
-  const { logs, logReport, logsLoading, loadLogs } = useKernelDataStore()
-  const report = logReport as Record<string, any> | null
+  const [logs, setLogs] = useState<any[]>([])
+  const [logReport, setLogReport] = useState<Record<string, any> | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const loadLogs = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [logsResult, reportResult] = await Promise.all([
+        window.electronAPI?.backend?.log?.list(),
+        window.electronAPI?.backend?.log?.report(),
+      ])
+      setLogs(Array.isArray(logsResult) ? logsResult : (logsResult as any)?.data?.logs || [])
+      setLogReport(reportResult ?? null)
+    } catch (err: any) {
+      console.error('[ExecutionLog] load failed:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => { loadLogs() }, [loadLogs])
+
+  const report = logReport as Record<string, any> | null
 
   const filteredLogs = filter
     ? logs.filter((l) =>
@@ -30,14 +48,14 @@ export function ExecutionLog() {
     <div style={{ padding: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <h3 style={{ margin: 0, color: 'var(--text)', fontSize: '16px' }}>执行日志</h3>
-        <button onClick={loadLogs} disabled={logsLoading}
+        <button onClick={loadLogs} disabled={loading}
           style={{
             padding: '4px 8px', borderRadius: '4px',
             border: '1px solid var(--border)', background: 'transparent',
-            color: 'var(--text-dim)', cursor: logsLoading ? 'wait' : 'pointer', fontSize: '11px',
+            color: 'var(--text-dim)', cursor: loading ? 'wait' : 'pointer', fontSize: '11px',
           }}
         >
-          {logsLoading ? '加载中...' : '刷新'}
+          {loading ? '加载中...' : '刷新'}
         </button>
       </div>
 
@@ -60,7 +78,7 @@ export function ExecutionLog() {
         ))}
       </div>
 
-      {logsLoading && !logs.length && !report ? (
+      {loading && !logs.length && !report ? (
         <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '32px' }}>加载中...</div>
       ) : tab === 'log' ? (
         <div>

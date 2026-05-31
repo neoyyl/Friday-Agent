@@ -1,7 +1,31 @@
 // 统一 LLM 接口定义
 export interface ChatMessage {
-  role: 'system' | 'user' | 'assistant'
+  role: 'system' | 'user' | 'assistant' | 'tool'
   content: string
+  name?: string
+  tool_call_id?: string
+}
+
+export interface ToolCall {
+  id: string
+  type: 'function'
+  function: {
+    name: string
+    arguments: string
+  }
+}
+
+export interface ToolDefinition {
+  type: 'function'
+  function: {
+    name: string
+    description: string
+    parameters: {
+      type: 'object'
+      properties: Record<string, { type: string; description: string; enum?: string[] }>
+      required?: string[]
+    }
+  }
 }
 
 export interface ChatOptions {
@@ -9,6 +33,7 @@ export interface ChatOptions {
   temperature?: number
   maxTokens?: number
   stream?: boolean
+  tools?: ToolDefinition[]
 }
 
 export interface ChatResponse {
@@ -17,6 +42,7 @@ export interface ChatResponse {
     message: {
       role: string
       content: string
+      tool_calls?: ToolCall[]
     }
     finish_reason: string
   }>

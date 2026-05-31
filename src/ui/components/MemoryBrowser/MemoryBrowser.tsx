@@ -1,9 +1,26 @@
-import { useState, useEffect } from 'react'
-import { useKernelDataStore } from '../../../stores/kernelDataStore'
+import { useState, useEffect, useCallback } from 'react'
 
 export function MemoryBrowser() {
   const [tab, setTab] = useState<'context' | 'facts'>('context')
-  const { memoryContext, memoryFacts, memoryLoading, loadMemory } = useKernelDataStore()
+  const [memoryContext, setMemoryContext] = useState<string | null>(null)
+  const [memoryFacts, setMemoryFacts] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const loadMemory = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [contextResult, listResult] = await Promise.all([
+        window.electronAPI?.backend?.memory?.context(),
+        window.electronAPI?.backend?.memory?.list(),
+      ])
+      setMemoryContext(typeof contextResult === 'string' ? contextResult : JSON.stringify(contextResult ?? ''))
+      setMemoryFacts(Array.isArray(listResult) ? listResult : (listResult as any)?.data?.facts || [])
+    } catch (err: any) {
+      console.error('[MemoryBrowser] load failed:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => { loadMemory() }, [loadMemory])
 
@@ -13,14 +30,14 @@ export function MemoryBrowser() {
         <h3 style={{ margin: 0, color: 'var(--text)', fontSize: '16px' }}>记忆浏览器</h3>
         <button
           onClick={loadMemory}
-          disabled={memoryLoading}
+          disabled={loading}
           style={{
             padding: '4px 8px', borderRadius: '4px',
             border: '1px solid var(--border)', background: 'transparent',
-            color: 'var(--text-dim)', cursor: memoryLoading ? 'wait' : 'pointer', fontSize: '11px',
+            color: 'var(--text-dim)', cursor: loading ? 'wait' : 'pointer', fontSize: '11px',
           }}
         >
-          {memoryLoading ? '加载中...' : '刷新'}
+          {loading ? '加载中...' : '刷新'}
         </button>
       </div>
 
@@ -42,7 +59,7 @@ export function MemoryBrowser() {
         ))}
       </div>
 
-      {memoryLoading && !memoryContext && !memoryFacts.length ? (
+      {loading && !memoryContext && !memoryFacts.length ? (
         <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '32px' }}>加载中...</div>
       ) : tab === 'context' ? (
         <div>

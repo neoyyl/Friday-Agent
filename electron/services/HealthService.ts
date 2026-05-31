@@ -23,7 +23,7 @@ export class HealthService extends ServiceBase {
   check(): { status: string; service: string; uptime: number; version: string } {
     return {
       status: 'ok',
-      service: 'friday-kernel',
+      service: 'friday-backend',
       uptime: Math.floor((Date.now() - this.startTime) / 1000),
       version: this.manifest.version,
     }
@@ -31,7 +31,7 @@ export class HealthService extends ServiceBase {
 
   hello(): { message: string; version: string } {
     return {
-      message: 'Friday Kernel is ready',
+      message: 'Friday Backend is ready',
       version: this.manifest.version,
     }
   }

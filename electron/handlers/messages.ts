@@ -5,8 +5,8 @@ import {
 } from '../../src/services/database/index'
 
 export function registerMessageHandlers(): void {
-  ipcMain.handle('messages:list', (_event, sessionId: string) => {
-    return getMessages(sessionId)
+  ipcMain.handle('messages:list', (_event, sessionId: string, limit?: number, offset?: number) => {
+    return getMessages(sessionId, limit, offset)
   })
 
   ipcMain.handle(

@@ -1,8 +1,9 @@
 import { ipcMain, BrowserWindow } from 'electron'
 import { createLLMClient } from '../../src/services/llm/clients'
 import { getAllProviders } from '../../src/services/llm/providers'
-import { LLMClient } from '../../src/services/llm/types'
+import { LLMClient, ToolDefinition } from '../../src/services/llm/types'
 import { getSettings } from '../../src/services/database/index'
+import { getEnabledTools, executeTool, Tool } from '../../src/services/tools/index'
 
 interface ResolveClientOptions {
   model?: string
@@ -11,6 +12,7 @@ interface ResolveClientOptions {
   provider?: string
   baseUrl?: string
   maxTokens?: number
+  enableTools?: boolean
 }
 
 interface ResolvedClient {
@@ -38,12 +40,41 @@ function resolveClient(options?: ResolveClientOptions): ResolvedClient {
 }
 
 function mapMessages(
-  chatMessages: Array<{ role: string; content: string }>
-): Array<{ role: 'system' | 'user' | 'assistant'; content: string }> {
+  chatMessages: Array<{ role: string; content: string; tool_call_id?: string; name?: string }>
+): Array<{ role: 'system' | 'user' | 'assistant' | 'tool'; content: string; tool_call_id?: string; name?: string }> {
   return chatMessages.map((msg) => ({
-    role: msg.role as 'system' | 'user' | 'assistant',
+    role: msg.role as 'system' | 'user' | 'assistant' | 'tool',
     content: msg.content,
+    tool_call_id: msg.tool_call_id,
+    name: msg.name,
   }))
+}
+
+function toolsToDefinitions(tools: Tool[]): ToolDefinition[] {
+  return tools.map((t) => ({
+    type: 'function' as const,
+    function: {
+      name: t.name,
+      description: t.description,
+      parameters: {
+        type: 'object' as const,
+        properties: Object.fromEntries(
+          t.parameters.map((p) => [p.name, { type: p.type, description: p.description, ...(p.enum ? { enum: p.enum } : {}) }])
+        ),
+        required: t.parameters.filter((p) => p.required).map((p) => p.name),
+      },
+    },
+  }))
+}
+
+async function executeToolCall(toolName: string, argsStr: string): Promise<string> {
+  try {
+    const args = JSON.parse(argsStr)
+    const result = await executeTool(toolName, args)
+    return result.success ? (result.output || '工具执行成功') : `错误: ${result.error}`
+  } catch (e) {
+    return `工具执行异常: ${e instanceof Error ? e.message : String(e)}`
+  }
 }
 
 export function registerLLMHandlers(): void {
@@ -51,17 +82,33 @@ export function registerLLMHandlers(): void {
     'llm:chat',
     async (
       _event,
-      chatMessages: Array<{ role: string; content: string }>,
+      chatMessages: Array<{ role: string; content: string; tool_call_id?: string; name?: string }>,
       options?: ResolveClientOptions
     ) => {
       try {
         const { client, model, temperature, maxTokens } = resolveClient(options)
+        const enabledTools = getEnabledTools()
+        const toolDefs = (options?.enableTools !== false && enabledTools.length > 0)
+          ? toolsToDefinitions(enabledTools) : undefined
         const response = await client.chat(mapMessages(chatMessages), {
-          model,
-          temperature,
-          maxTokens,
+          model, temperature, maxTokens, tools: toolDefs,
         })
-        return response.choices[0].message
+        const msg = response.choices[0].message
+
+        if (msg.tool_calls && msg.tool_calls.length > 0) {
+          const toolResults = await Promise.all(
+            msg.tool_calls.map(async (tc) => ({
+              tool_call_id: tc.id,
+              role: 'tool' as const,
+              content: await executeToolCall(tc.function.name, tc.function.arguments),
+            }))
+          )
+          return {
+            ...msg,
+            tool_results: toolResults,
+          }
+        }
+        return msg
       } catch (error) {
         console.error('LLM chat error:', error)
         return {

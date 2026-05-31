@@ -174,8 +174,19 @@ export function deleteSession(id: string): boolean {
 
 // ==================== Messages ====================
 
-export function getMessages(sessionId: string): Message[] {
-  return getDb().prepare('SELECT * FROM messages WHERE session_id = ? ORDER BY created_at ASC').all(sessionId) as Message[]
+export function getMessages(sessionId: string, limit?: number, offset?: number): Message[] {
+  let query = 'SELECT * FROM messages WHERE session_id = ? ORDER BY created_at DESC'
+  const params: (string | number)[] = [sessionId]
+  if (limit !== undefined) {
+    query += ' LIMIT ?'
+    params.push(limit)
+  }
+  if (offset !== undefined && offset > 0) {
+    query += ' OFFSET ?'
+    params.push(offset)
+  }
+  const rows = getDb().prepare(query).all(...params) as Message[]
+  return rows.reverse()
 }
 
 export function getMessage(id: string): Message | undefined {
@@ -251,7 +262,7 @@ export function updateSettings(newSettings: Record<string, string>): Record<stri
   const stmt = getDb().prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)')
   const tx = getDb().transaction(() => {
     for (const [key, value] of Object.entries(newSettings)) {
-      stmt.run(key, value)
+      stmt.run(key, String(value ?? ''))
     }
   })
   tx()

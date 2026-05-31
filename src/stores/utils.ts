@@ -1,7 +1,7 @@
-import type { KernelResponse } from '../types/electron-api.d'
+import type { BackendResponse } from '../types/electron-api.d'
 
 /**
- * Safely unwrap a KernelResponse or fallback to raw data.
+ * Safely unwrap a BackendResponse or fallback to raw data.
  * Common patterns handled:
  *   result.data?.agents
  *   result.agents
@@ -9,7 +9,7 @@ import type { KernelResponse } from '../types/electron-api.d'
  *   result.data?.history || result.history || result.records || []
  */
 export function unwrapResponse<T>(
-  res: KernelResponse<T> | T | undefined | null,
+  res: BackendResponse<T> | T | undefined | null,
   fallbackValue: T
 ): T {
   if (res == null) return fallbackValue
@@ -23,7 +23,7 @@ export function unwrapResponse<T>(
     return fallbackValue
   }
 
-  // KernelResponse<T> pattern: { success, data }
+  // BackendResponse<T> pattern: { success, data }
   if ('data' in obj && 'success' in obj) {
     return (obj.data as T) ?? fallbackValue
   }
@@ -36,7 +36,7 @@ export function unwrapResponse<T>(
  * Get array from response, handling various nesting patterns.
  */
 export function unwrapArray<T>(
-  res: KernelResponse<T[]> | T[] | undefined | null,
+  res: BackendResponse<T[]> | T[] | undefined | null,
   ...keys: string[]
 ): T[] {
   if (res == null) return []
@@ -45,7 +45,7 @@ export function unwrapArray<T>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const obj = res as any
 
-  // KernelResponse<T> pattern
+  // BackendResponse<T> pattern
   if (obj?.data != null && 'success' in obj) {
     const data = obj.data
     if (Array.isArray(data)) return data as T[]
