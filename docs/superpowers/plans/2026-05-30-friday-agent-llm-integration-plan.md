@@ -81,7 +81,7 @@ private getSystemPromptForMode(mode: string): string {
 
 - [ ] **Step 3: 验证代码编译**
 
-运行：`cd f:\Product\Agent\Friday\my-agent-platform && npx tsc --noEmit`
+运行：`cd PROJECT_ROOT && npx tsc --noEmit`
 
 预期输出：无编译错误
 
@@ -165,7 +165,7 @@ private async invokeLLM(messages: Array<{ role: string; content: string }>): Pro
 
 - [ ] **Step 3: 验证代码编译**
 
-运行：`cd f:\Product\Agent\Friday\my-agent-platform && npx tsc --noEmit`
+运行：`cd PROJECT_ROOT && npx tsc --noEmit`
 
 预期输出：无编译错误
 
@@ -210,7 +210,7 @@ private async executeWithAgent(agent: AgentRecord, task: string, mode: string): 
 
 - [ ] **Step 3: 验证代码编译**
 
-运行：`cd f:\Product\Agent\Friday\my-agent-platform && npx tsc --noEmit`
+运行：`cd PROJECT_ROOT && npx tsc --noEmit`
 
 预期输出：无编译错误
 
@@ -295,7 +295,7 @@ private async invokeLLM(messages: Array<{ role: string; content: string }>): Pro
 
 - [ ] **Step 4: 验证代码编译**
 
-运行：`cd f:\Product\Agent\Friday\my-agent-platform && npx tsc --noEmit`
+运行：`cd PROJECT_ROOT && npx tsc --noEmit`
 
 预期输出：无编译错误
 
@@ -382,7 +382,7 @@ private classifyError(error: Error): AgentErrorType {
 
 - [ ] **Step 3: 验证代码编译**
 
-运行：`cd f:\Product\Agent\Friday\my-agent-platform && npx tsc --noEmit`
+运行：`cd PROJECT_ROOT && npx tsc --noEmit`
 
 预期输出：无编译错误
 

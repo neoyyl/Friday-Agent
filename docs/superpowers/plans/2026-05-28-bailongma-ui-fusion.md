@@ -49,7 +49,7 @@ src/
 
 - [ ] **Step 1: 安装D3依赖**
 
-Run: `cd F:\Product\Agent\Friday\my-agent-platform && npm install d3 @types/d3`
+Run: `cd PROJECT_ROOT && npm install d3 @types/d3`
 
 - [ ] **Step 2: 创建主题定义文件**
 
@@ -1415,7 +1415,7 @@ git commit -m "feat: update StatusBar to use nebula theme variables"
 
 - [ ] **Step 1: 启动开发服务器**
 
-Run: `cd F:\Product\Agent\Friday\my-agent-platform && npm run dev`
+Run: `cd PROJECT_ROOT && npm run dev`
 
 - [ ] **Step 2: 验证主题切换**
 
@@ -1447,7 +1447,7 @@ Run: `cd F:\Product\Agent\Friday\my-agent-platform && npm run dev`
 
 - [ ] **Step 7: 构建生产版本**
 
-Run: `cd F:\Product\Agent\Friday\my-agent-platform && npm run build`
+Run: `cd PROJECT_ROOT && npm run build`
 
 - [ ] **Step 8: 最终提交**
 

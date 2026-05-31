@@ -10,7 +10,7 @@
 |------|-----|
 | **文档版本** | v1.0 |
 | **创建日期** | 2026-05-29 |
-| **目标路径** | `F:\Product\Agent\Friday\my-agent-platform` |
+| **目标路径** | `PROJECT_ROOT` |
 | **关联设计** | [[女娲美术设计.md]] · [[Friday Kernel]] |
 
 ---
